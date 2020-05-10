@@ -40,13 +40,14 @@ class player(commands.Cog):
             if player.JSON['socialMedia']['links']['DISCORD'] != target:
                 raise KeyError
 
-            member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID, 'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1)}
+            member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID,
+                      'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1)}
             await self.bot.db.players.insert_one(member)
             return await ctx.send(f"**{ctx.author.mention} Verified as {ign}! The bot will now take a few minutes to" +
                                   " sync your roles/ign across Discord.**")
 
         except KeyError:
-            pass # If they're a gamer, tell them to verify with the weird thing
+            pass  # If they're a gamer, tell them to verify with the weird thing
 
         await ctx.send("Go away i haven't written that code yet dumbass")
 

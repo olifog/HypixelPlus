@@ -3,6 +3,7 @@ from discord.ext import commands
 from datetime import datetime
 import humanize
 
+
 class misc(commands.Cog):
     """Miscellaneous commands"""
 
@@ -12,12 +13,12 @@ class misc(commands.Cog):
     @commands.command()
     async def info(self, ctx):
         """Check bot ping, latency and info"""
-        process_time = round(((datetime.utcnow()-ctx.message.created_at).total_seconds())*1000)
+        process_time = round(((datetime.utcnow() - ctx.message.created_at).total_seconds()) * 1000)
 
         e = discord.Embed(color=discord.Color.gold())
         e.add_field(
             name="**Latency:**",
-            value=f"{round(self.bot.latency*1000)}ms"
+            value=f"{round(self.bot.latency * 1000)}ms"
         )
         e.add_field(
             name="**Process time:**",
@@ -33,8 +34,8 @@ class misc(commands.Cog):
         e.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=e)
 
-    #@commands.command()
-    #async def help(self, ctx):
+    # @commands.command()
+    # async def help(self, ctx):
     #    """Help command"""
     #    await ctx.send('Placeholder help command')
 
@@ -42,6 +43,7 @@ class misc(commands.Cog):
     async def support(self, ctx):
         """Support the development of the bot!"""
         await ctx.send('give us money please (except not yet we haven\'t set it up yet)')
+
 
 def setup(bot):
     bot.add_cog(misc(bot))
