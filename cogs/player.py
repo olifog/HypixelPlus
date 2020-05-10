@@ -1,8 +1,8 @@
-import discord
-from discord.ext import commands
 import asyncio
 import base64
 import datetime
+
+from discord.ext import commands
 
 
 class player(commands.Cog):
@@ -27,29 +27,35 @@ class player(commands.Cog):
         allowed_chars += "!@#$%^&*()-=_+`~[]{}\\|;:\'\",<.>/?"
 
         target = str(ctx.author)
-        gamer = False
         for char in ctx.author.name:
             if char not in allowed_chars:
                 target = base64.b64encode(str(ctx.author))[:3] + '#6969'
-                gamer = True
                 break
 
         player = await self.bot.hypixelapi.getPlayer(name=ign)
+        vmessage = "> It looks like you've linked the wrong account on Hypixel... please verify with your *current* Discord account."
 
         try:
-            if player.JSON['socialMedia']['links']['DISCORD'] != target:
-                raise KeyError
+            daccount = player.JSON['socialMedia']['links']['DISCORD']
+        except KeyError:  # They have no linked Discord account
+            daccount = None
+            vmessage = "> To verify with Hypixel+, please link your Discord account on Hypixel!"
 
+        if daccount == target or daccount == str(ctx.author):
             member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID,
                       'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1)}
             await self.bot.db.players.insert_one(member)
             return await ctx.send(f"**{ctx.author.mention} Verified as {ign}! The bot will now take a few minutes to" +
                                   " sync your roles/ign across Discord.**")
 
-        except KeyError:
-            pass  # If they're a gamer, tell them to verify with the weird thing
+        vmessage += "\n\n**How to verify:**\n\t*- Connect to* `mc.hypixel.net`"
+        vmessage += "\n\t*- Go into your profile (right click on your head)"
+        vmessage += "\n\t- Click on \'Social Media\', the Twitter logo"
+        vmessage += "\n\t- Click on the Discord logo"
+        vmessage += f"\n\t- Copy and paste* `{target}` *into chat"
+        vmessage += f"\n\t- Come back to Discord and run* `{ctx.prefix + ctx.command.qualified_name} {ign}` *again!*"
 
-        await ctx.send("Go away i haven't written that code yet dumbass")
+        await ctx.send(vmessage)
 
     @commands.command()
     async def unverify(self, ctx):
