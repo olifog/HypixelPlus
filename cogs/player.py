@@ -29,7 +29,7 @@ class player(commands.Cog):
         target = str(ctx.author)
         for char in ctx.author.name:
             if char not in allowed_chars:
-                target = base64.b64encode(str(ctx.author))[:3] + '#6969'
+                target = (base64.b64encode(str(ctx.author).encode()).decode('utf-8')[:5] + '#6969').strip('+/=-')
                 break
 
         player = await self.bot.hypixelapi.getPlayer(name=ign)
