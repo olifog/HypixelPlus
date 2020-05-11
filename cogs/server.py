@@ -51,8 +51,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             pass
 
         for role in user_roles:
-            if role.name not in guild_applicable_roles and role.name[
-                                                           8:] not in guild_applicable_roles:  # TODO: remove after making Deprived bot
+            if role.name[8:] not in guild_applicable_roles:  # TODO: remove after making Deprived bot
                 new_roles.append(role)
 
         nick = self.serverdata["nameFormat"].format(ign=user['displayname'], level=str(round(user['level'], 2)))
