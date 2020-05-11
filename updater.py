@@ -1,13 +1,14 @@
 import asyncio
-import aiohttp
-import motor.motor_asyncio
 import json
-from extras.hypixel import HypixelAPI
-from datetime import datetime
-from extras.requesthandler import RequestHandler
 import time
+from datetime import datetime
 from operator import itemgetter
+
+import motor.motor_asyncio
 from pytz import timezone
+
+from extras.hypixel import HypixelAPI
+from extras.requesthandler import RequestHandler
 
 
 class Updater:
@@ -102,10 +103,7 @@ class Updater:
                 try:
                     data['name'] = dbplayer['displayname']
                     pupdate = {'guildid': guild.JSON['_id'], 'guildRank': member['rank'], 'guildTag': tags[member['rank']]}
-
-                    for gdata in pupdate:
-                        await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
-                        break
+                    await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
                 except (KeyError, TypeError):
                     get_from_api = True
                     try:
