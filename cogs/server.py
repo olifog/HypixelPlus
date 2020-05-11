@@ -1,5 +1,4 @@
 import copy
-import time
 
 from discord.ext import commands
 
@@ -13,7 +12,6 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         self.queue = []
 
     async def update_next_user(self):
-        start = time.time()
         if self.server is None:
             self.server = await self.bot.fetch_guild(self.discordid)
 
@@ -32,6 +30,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
                 guild_applicable_roles.append(role)
         except KeyError:
             pass
+
         try:
             for role in self.serverdata['guildRoles']:
                 guild_applicable_roles.append(role)
@@ -45,12 +44,14 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         except KeyError:
             pass
         try:
-            new_roles.append(self.server.get_role(self.serverdata['guildRoles'][user['guildRank']]))
+            if user['guildid'] == self.serverdata['guildid']:
+                new_roles.append(self.server.get_role(self.serverdata['guildRoles'][user['guildRank']]))
         except KeyError:
             pass
 
         for role in user_roles:
-            if role.name not in guild_applicable_roles:
+            if role.name not in guild_applicable_roles and role.name[
+                                                           8:] not in guild_applicable_roles:  # TODO: remove after making Deprived bot
                 new_roles.append(role)
 
         nick = self.serverdata["nameFormat"].format(ign=user['displayname'], level=str(round(user['level'], 2)))

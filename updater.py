@@ -87,7 +87,8 @@ class Updater:
                 except KeyError:
                     pass
 
-                update['ranks'].append({'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
+                update['ranks'].insert(len(update['ranks']) - 1,
+                                       {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
 
             todayExp = []
             today = datetime.now(tz=self.est).strftime("%Y-%m-%d")
