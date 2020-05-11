@@ -1,16 +1,18 @@
-import discord
-from discord.ext import commands
 import asyncio
+import json
+import logging
 import os
 import traceback
-import logging
 from datetime import datetime
-import json
-from extras.hypixel import HypixelAPI, PlayerNotFoundException
-from extras.requesthandler import RequestHandler
-import motor.motor_asyncio
 from urllib import parse
 
+import discord
+import motor.motor_asyncio
+from discord.ext import commands, tasks
+
+from cogs.server import LinkedServer
+from extras.hypixel import HypixelAPI, PlayerNotFoundException
+from extras.requesthandler import RequestHandler
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s:%(name)s] %(message)s", level=logging.INFO
@@ -36,6 +38,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.handler = RequestHandler(asyncio.get_event_loop())
         self.hypixelapi = HypixelAPI(self.settings['bot_api_key'], self.handler)
         self.logger = logging.getLogger(__name__)
+        self.servers = []
 
         self.owner = 404244659024429056
         self.uptime = datetime.now()
@@ -72,11 +75,18 @@ class HypixelPlus(commands.AutoShardedBot):
         traceback.print_exc()
         print(error)
 
+    async def setup_servers(self):
+        async for server in self.db.servers.find():
+            self.servers.append(LinkedServer(self, server['discordid']))
 
     async def on_ready(self):
-        #self.remove_command('help')
+        # self.remove_command('help')
         if not self.cogs:
             await self.load_mods()
+
+        await self.setup_servers()
+        self.update_next_users.start()
+
         self.logger.info("Bot ready")
 
         watch = discord.Activity(type=discord.ActivityType.watching, name="Hypixel plus++ (Plus)️")
@@ -91,6 +101,15 @@ class HypixelPlus(commands.AutoShardedBot):
                 self.logger.info(f"Loaded {ext}")
             except:
                 self.logger.critical(f"{ext} failed:\n{traceback.format_exc()}")
+
+    @tasks.loop(seconds=1)
+    async def update_next_users(self):
+        for server in self.servers:
+            try:
+                await server.update_next_user()
+            except Exception as e:
+                traceback.print_exc()
+                print(e)
 
     def run(self):
         super().run(self.settings['discord_token'])

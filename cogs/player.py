@@ -44,6 +44,15 @@ class player(commands.Cog):
         if daccount == target or daccount == str(ctx.author):
             member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID,
                       'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1)}
+            servers = []
+
+            for server in self.bot.servers:
+                for m in server.server.members:
+                    if m.id == ctx.author.id:
+                        servers.append(server.discordid)
+
+            member['servers'] = servers
+
             await self.bot.db.players.insert_one(member)
             return await ctx.send(f"**{ctx.author.mention} Verified as {ign}! The bot will now take a few minutes to" +
                                   " sync your roles/ign across Discord.**")
