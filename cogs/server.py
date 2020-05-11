@@ -20,6 +20,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
                 self.queue.append(user)
 
         user = self.queue[0]
+        self.queue.pop(0)
         member = self.server.get_member(user['discordid'])
 
         self.serverdata = await self.bot.db.servers.find_one({"discordid": self.discordid})
