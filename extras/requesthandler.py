@@ -1,8 +1,7 @@
+from io import BytesIO
 
 import aiohttp
-from io import BytesIO
 import discord
-import json
 
 
 class RequestHandler:
@@ -17,10 +16,15 @@ class RequestHandler:
         if self.session is None:
             self.session = aiohttp.ClientSession(loop=self.loop)
 
-        async with self.session.get(url) as r:
-            await r.read()
+        tries = 0
 
-        return r
+        while tries < 10:
+            try:
+                async with self.session.get(url) as r:
+                    await r.read()
+                    return r
+            except ConnectionResetError:
+                tries += 1
 
     async def getJSON(self, url):
         resp = await self.get(url)
