@@ -25,22 +25,23 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
 
         guild_applicable_roles = []
         new_roles = []
-        try:
-            for role, id in self.serverdata['hypixelRoles'].items():
+
+        hyproles = self.serverdata.get('hypixelRoles')
+
+        if hyproles:
+            for role, id in hyproles.items():
                 guild_applicable_roles.append(id)
 
-            new_roles.append(self.server.get_role(self.serverdata['hypixelRoles'][user['hypixelRank']]))
-        except KeyError:
-            pass
+            try:
+                new_roles.append(self.server.get_role(hyproles[user['hypixelRank']]))
+            except KeyError:
+                pass
 
-        try:
-            guild_applicable_roles.append(self.serverdata['unverifiedRole'])
-        except KeyError:
-            pass
+        guild_applicable_roles.append(self.serverdata.get('unverifiedRole'))
+        guild_applicable_roles.append(self.serverdata.get('verifiedRole'))
 
         try:
             new_roles.append(self.server.get_role(self.serverdata['verifiedRole']))
-            guild_applicable_roles.append(self.serverdata['verifiedRole'])
         except KeyError:
             pass
 
@@ -57,7 +58,10 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             if role.id not in guild_applicable_roles:
                 new_roles.append(role)
 
-        nick = self.serverdata["nameFormat"].format(ign=user['displayname'], level=str(round(user['level'], 2)))
+        nick = self.serverdata["nameFormat"].format(ign=user['displayname'],
+                                                    level=str(round(user['level'], 2)),
+                                                    guildRank=user.get('guildRank', ""),
+                                                    rank=str(user.get("hypixelRank", "")))
 
         try:
             await member.edit(roles=new_roles, nick=nick)
