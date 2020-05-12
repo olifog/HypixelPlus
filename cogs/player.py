@@ -24,7 +24,6 @@ class player(commands.Cog):
         # Check for illegal characters
         allowed_chars = "abcdefghijklmnopqrstuvwxyz"
         allowed_chars += allowed_chars.upper()
-        allowed_chars += "!@#$%^&*()-=_+`~[]{}\\|;:\'\",<.>/?"
 
         target = str(ctx.author)
         for char in ctx.author.name:

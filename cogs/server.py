@@ -1,5 +1,3 @@
-import copy
-
 from discord.ext import commands
 
 
@@ -26,32 +24,37 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         self.serverdata = await self.bot.db.servers.find_one({"discordid": self.discordid})
 
         guild_applicable_roles = []
-        try:
-            for role in self.serverdata['hypixelRoles']:
-                guild_applicable_roles.append(role)
-        except KeyError:
-            pass
-
-        try:
-            for role in self.serverdata['guildRoles']:
-                guild_applicable_roles.append(role)
-        except KeyError:
-            pass
-
-        user_roles = copy.copy(member.roles)
         new_roles = []
         try:
+            for role, id in self.serverdata['hypixelRoles'].items():
+                guild_applicable_roles.append(id)
+
             new_roles.append(self.server.get_role(self.serverdata['hypixelRoles'][user['hypixelRank']]))
         except KeyError:
             pass
+
         try:
+            guild_applicable_roles.append(self.serverdata['unverifiedRole'])
+        except KeyError:
+            pass
+
+        try:
+            new_roles.append(self.server.get_role(self.serverdata['verifiedRole']))
+            guild_applicable_roles.append(self.serverdata['verifiedRole'])
+        except KeyError:
+            pass
+
+        try:
+            for role, id in self.serverdata['guildRoles'].items():
+                guild_applicable_roles.append(id)
+
             if user['guildid'] == self.serverdata['guildid']:
                 new_roles.append(self.server.get_role(self.serverdata['guildRoles'][user['guildRank']]))
         except KeyError:
             pass
 
-        for role in user_roles:
-            if role.name[8:] not in guild_applicable_roles:  # TODO: remove after making Deprived bot
+        for role in member.roles:
+            if role.id not in guild_applicable_roles:
                 new_roles.append(role)
 
         nick = self.serverdata["nameFormat"].format(ign=user['displayname'], level=str(round(user['level'], 2)))
