@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+import traceback
 from datetime import datetime
 from operator import itemgetter
 
@@ -51,8 +52,6 @@ class Updater:
 
         if oldest is None:
             return
-
-        start = time.time()
 
         await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': {'updating': True}})
 
@@ -148,44 +147,51 @@ class Updater:
             await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': update})
 
         except Exception as e:
-            print(e)
             await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': {'updating': False}})
+            raise e
 
     async def update_player(self):
         oldest = None
         async for player in self.db.players.find({"updating": {"$ne": True}}).sort([("lastModifiedData", 1)]).limit(1):
             oldest = player
 
+        if oldest is None:
+            return
+
         await self.db.players.update_one({'_id': oldest['_id']}, {'$set': {'updating': True}})
 
-        player = await self.hypixelapi.getPlayer(uuid=oldest['uuid'])
+        try:
+            player = await self.hypixelapi.getPlayer(uuid=oldest['uuid'])
 
-        update = {
-            "level": player.getLevel(),
-            "hypixelRank": player.getRank(),
-            "updating": False
-        }
+            update = {
+                "level": player.getLevel(),
+                "hypixelRank": player.getRank(),
+                "updating": False
+            }
 
-        needed_data = ['displayname', 'karma', 'firstLogin', 'lastLogin']
-        for d in needed_data:
+            needed_data = ['displayname', 'karma', 'firstLogin', 'lastLogin']
+            for d in needed_data:
+                try:
+                    update[d] = player.JSON[d]
+                except KeyError:
+                    pass
+
             try:
-                update[d] = player.JSON[d]
+                update['online'] = player.JSON['lastLogout'] < player.JSON['lastLogin']
             except KeyError:
                 pass
 
-        try:
-            update['online'] = player.JSON['lastLogout'] < player.JSON['lastLogin']
-        except KeyError:
-            pass
+            try:
+                update['discordName'] = player.JSON['socialMedia']['links']['DISCORD']
+            except KeyError:
+                pass
 
-        try:
-            update['discordName'] = player.JSON['socialMedia']['links']['DISCORD']
-        except KeyError:
-            pass
+            update['lastModifiedData'] = datetime.utcnow()
 
-        update['lastModifiedData'] = datetime.utcnow()
-
-        await self.db.players.update_one({'_id': oldest['_id']}, {'$set': update})
+            await self.db.players.update_one({'_id': oldest['_id']}, {'$set': update})
+        except Exception as e:
+            await self.db.players.update_one({'_id': oldest['_id']}, {'$set': {'updating': False}})
+            raise e
 
 
     async def updater(self):
@@ -193,10 +199,14 @@ class Updater:
         asyncio.create_task(self.updater())
         self.iterations += 1
 
-        if self.iterations % 10 == 0:
-            await self.update_guild()
-        else:
-            await self.update_player()
+        try:
+            if self.iterations % 10 == 0:
+                await self.update_guild()
+            else:
+                await self.update_player()
+        except Exception:
+            await self.db.logs.update_one({'_id': "5ebe8b73349daa38579f3e6c"},
+                                          {'$push': {'logs': traceback.format_exc()}})
 
     async def close(self):
         print('\nClosing request handler...')
