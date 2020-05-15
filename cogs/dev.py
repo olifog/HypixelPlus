@@ -16,6 +16,7 @@ class dev(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print('test')
         await self.bot.db.logs.insert_one({"log": "Restarted bot"})
         self.logging.start()
 
