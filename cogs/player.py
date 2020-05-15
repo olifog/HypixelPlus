@@ -32,13 +32,11 @@ class player(commands.Cog):
                 break
 
         player = await self.bot.hypixelapi.getPlayer(name=ign)
-        vmessage = "> It looks like you've linked the wrong account on Hypixel... please verify with your *current* Discord account."
 
         try:
             daccount = player.JSON['socialMedia']['links']['DISCORD']
         except KeyError:  # They have no linked Discord account
             daccount = None
-            vmessage = "> To verify with Hypixel+, please link your Discord account on Hypixel!"
 
         if daccount == target or daccount == str(ctx.author):
             member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID,
@@ -56,6 +54,7 @@ class player(commands.Cog):
             return await ctx.send(f"**{ctx.author.mention} Verified as {ign}! The bot will now take a few minutes to" +
                                   " sync your roles/ign across Discord.**")
 
+        vmessage = "> Please follow the steps below to verify your current Discord account!"
         vmessage += "\n\n**How to verify:**\n\t*- Connect to* `mc.hypixel.net`"
         vmessage += "\n\t*- Go into your profile (right click on your head)"
         vmessage += "\n\t- Click on \'Social Media\', the Twitter logo"
