@@ -205,8 +205,7 @@ class Updater:
             else:
                 await self.update_player()
         except Exception:
-            await self.db.logs.update_one({'_id': "5ebe8b73349daa38579f3e6c"},
-                                          {'$push': {'logs': traceback.format_exc()}})
+            await self.db.logs.insert_one({"log": traceback.format_exc()})
 
     async def close(self):
         print('\nClosing request handler...')

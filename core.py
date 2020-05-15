@@ -107,9 +107,8 @@ class HypixelPlus(commands.AutoShardedBot):
         for server in self.servers:
             try:
                 await server.update_next_user()
-            except Exception as e:
-                traceback.print_exc()
-                print(e)
+            except Exception:
+                await self.db.logs.insert_one({"log": traceback.format_exc()})
 
     def run(self):
         super().run(self.settings['discord_token'])

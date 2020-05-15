@@ -1,13 +1,21 @@
-import discord
-from discord.ext import commands
-from extras import checks
+from discord.ext import commands, tasks
 import json
+
+from discord.ext import commands, tasks
+
+from extras import checks
+
 
 class dev(commands.Cog):
     """Miscellaneous commands"""
 
     def __init__(self, bot):
         self.bot = bot
+        self.logchannel = None
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.logging.start()
 
     @commands.command()
     @checks.is_owner()
@@ -32,8 +40,16 @@ class dev(commands.Cog):
         await ctx.send(f'Tracking {players} players')
         await ctx.send(f'Tracking {guilds} guilds')
 
-        await ctx.send(f'Each player is updated every {players/1.5} seconds')
-        await ctx.send(f'Each guild is updated every {guilds*10} seconds')
+        await ctx.send(f'Each player is updated every {players / 1.5} seconds')
+        await ctx.send(f'Each guild is updated every {guilds * 10} seconds')
+
+    @tasks.loop(seconds=5.0)
+    async def logging(self):
+        if self.logchannel is None:
+            self.logchannel = await self.bot.fetch_channel(710829103003205764)
+
+        async for log in self.bot.db.logs.find():
+            await self.logchannel.send(log['log'])
 
 
 def setup(bot):
