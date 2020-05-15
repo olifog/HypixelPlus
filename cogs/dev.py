@@ -1,8 +1,7 @@
 
 import json
 
-import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 from extras import checks
 
@@ -12,13 +11,6 @@ class dev(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.logchannel = None
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print('test')
-        await self.bot.db.logs.insert_one({"log": "Restarted bot"})
-        self.logging.start()
 
     @commands.command()
     @checks.is_owner()
@@ -45,15 +37,6 @@ class dev(commands.Cog):
 
         await ctx.send(f'Each player is updated every {players / 1.5} seconds')
         await ctx.send(f'Each guild is updated every {guilds * 10} seconds')
-
-    @tasks.loop(seconds=5.0)
-    async def logging(self):
-        if self.logchannel is None:
-            self.logchannel = await self.bot.fetch_channel(710829103003205764)
-
-        async for log in self.bot.db.logs.find():
-            e = discord.Embed(color=discord.Color.darker_grey(), description=log)
-            await self.logchannel.send(embed=e)
 
 
 def setup(bot):

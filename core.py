@@ -39,6 +39,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.hypixelapi = HypixelAPI(self.settings['bot_api_key'], self.handler)
         self.logger = logging.getLogger(__name__)
         self.servers = []
+        self.logchannel = None
 
         self.owner = 404244659024429056
         self.uptime = datetime.now()
@@ -88,6 +89,8 @@ class HypixelPlus(commands.AutoShardedBot):
         self.update_next_users.start()
 
         self.logger.info("Bot ready")
+        await self.db.logs.insert_one({"log": "Restarted bot"})
+        self.logging.start()
 
         watch = discord.Activity(type=discord.ActivityType.watching, name="Hypixel plus++ (Plus)️")
         await self.change_presence(status=discord.Status.idle, activity=watch)
@@ -109,6 +112,15 @@ class HypixelPlus(commands.AutoShardedBot):
                 await server.update_next_user()
             except Exception:
                 await self.db.logs.insert_one({"log": traceback.format_exc()})
+
+    @tasks.loop(seconds=5.0)
+    async def logging(self):
+        if self.logchannel is None:
+            self.logchannel = await self.fetch_channel(710829103003205764)
+
+        async for log in self.db.logs.find():
+            e = discord.Embed(color=discord.Color.darker_grey(), description=log)
+            await self.logchannel.send(embed=e)
 
     def run(self):
         super().run(self.settings['discord_token'])
