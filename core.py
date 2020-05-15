@@ -94,7 +94,7 @@ class HypixelPlus(commands.AutoShardedBot):
         await self.log("Restarted")
         self.logging.start()
 
-        watch = discord.Activity(type=discord.ActivityType.watching, name="Hypixel plus++ (Plus)️")
+        watch = discord.Activity(type=discord.ActivityType.watching, name="h+help | hyp.plus️")
         await self.change_presence(status=discord.Status.idle, activity=watch)
 
     async def load_mods(self):
