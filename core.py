@@ -44,6 +44,10 @@ class HypixelPlus(commands.AutoShardedBot):
         self.owner = 404244659024429056
         self.uptime = datetime.now()
 
+    async def log(self, msg):
+        timestamp = datetime.now()
+        await self.db.logs.insert_one({"log": msg, "timestamp": timestamp})
+
     async def on_message(self, message):
         if message.author.bot:
             return
@@ -89,7 +93,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.update_next_users.start()
 
         self.logger.info("Bot ready")
-        await self.db.logs.insert_one({"log": "Restarted bot"})
+        await self.log("Restarted")
         self.logging.start()
 
         watch = discord.Activity(type=discord.ActivityType.watching, name="Hypixel plus++ (Plus)️")
@@ -111,16 +115,23 @@ class HypixelPlus(commands.AutoShardedBot):
             try:
                 await server.update_next_user()
             except Exception:
-                await self.db.logs.insert_one({"log": traceback.format_exc()})
+                await self.log(traceback.format_exc())
 
-    @tasks.loop(seconds=5.0)
+    @tasks.loop(seconds=3.0)
     async def logging(self):
+        log = None
+        async for g in self.db.logs.find().sort([("timestamp", 1)]).limit(1):
+            log = g
+
+        if log is None:
+            return
+
         if self.logchannel is None:
             self.logchannel = await self.fetch_channel(710829103003205764)
 
-        async for log in self.db.logs.find():
-            e = discord.Embed(color=discord.Color.darker_grey(), description=log['log'])
-            await self.logchannel.send(embed=e)
+        e = discord.Embed(color=discord.Color.darker_grey(), description=log['log'])
+        await self.logchannel.send(embed=e)
+        await self.db.logs.delete_many({'_id': log['_id']})
 
     def run(self):
         super().run(self.settings['discord_token'])

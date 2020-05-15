@@ -79,7 +79,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         try:
             await member.edit(roles=new_roles, nick=nick)
         except Exception as e:
-            pass
+            raise e
 
 
 class server(commands.Cog):

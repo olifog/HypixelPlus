@@ -27,6 +27,10 @@ class Updater:
         self.last_task_time = time.time()
         self.est = timezone("US/Eastern")
 
+    async def log(self, msg):
+        timestamp = datetime.now()
+        await self.db.logs.insert_one({"log": msg, "timestamp": timestamp})
+
     async def guild_exp_to_level(self, exp):
         levels = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000,
                   2500000, 2500000]
@@ -193,7 +197,6 @@ class Updater:
             await self.db.players.update_one({'_id': oldest['_id']}, {'$set': {'updating': False}})
             raise e
 
-
     async def updater(self):
         await asyncio.sleep(0.55)
         asyncio.create_task(self.updater())
@@ -205,7 +208,7 @@ class Updater:
             else:
                 await self.update_player()
         except Exception:
-            await self.db.logs.insert_one({"log": traceback.format_exc()})
+            await self.log(traceback.format_exc())
 
     async def close(self):
         print('\nClosing request handler...')
