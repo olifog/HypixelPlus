@@ -57,7 +57,6 @@ class HypixelPlus(commands.AutoShardedBot):
 
     async def on_command_error(self, ctx, error):
         if hasattr(ctx.command, 'on_error'):
-            print('has handler')
             return
 
         newerror = getattr(error, 'original', error)
@@ -77,15 +76,14 @@ class HypixelPlus(commands.AutoShardedBot):
             msg = f"*You're missing the parameter {newerror.param}!*\nUsage of `{ctx.command}`:\n> {usage}"
             return await ctx.send(msg)
 
-        traceback.print_exc()
-        print(error)
+        await self.log(traceback.format_exc())
+        await ctx.send("Internal error found. Sorry, please try again later! The developer has been notified.")
 
     async def setup_servers(self):
         async for server in self.db.servers.find():
             self.servers.append(LinkedServer(self, server['discordid']))
 
     async def on_ready(self):
-        # self.remove_command('help')
         if not self.cogs:
             await self.load_mods()
 
