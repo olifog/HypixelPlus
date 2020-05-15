@@ -1,6 +1,7 @@
-from discord.ext import commands, tasks
+
 import json
 
+import discord
 from discord.ext import commands, tasks
 
 from extras import checks
@@ -49,7 +50,8 @@ class dev(commands.Cog):
             self.logchannel = await self.bot.fetch_channel(710829103003205764)
 
         async for log in self.bot.db.logs.find():
-            await self.logchannel.send(log['log'])
+            e = discord.Embed(color=discord.Color.darker_grey(), description=log)
+            await self.logchannel.send(embed=e)
 
 
 def setup(bot):
