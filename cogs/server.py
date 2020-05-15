@@ -32,8 +32,6 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             await self.bot.db.players.update_one({'_id': user['_id']}, {"$pull": {"servers": self.server.id}})
             return
 
-        await self.bot.db.logs.insert_one({"log": str(member)})
-
         self.serverdata = await self.bot.db.servers.find_one({"discordid": self.discordid})
 
         guild_applicable_roles = []
