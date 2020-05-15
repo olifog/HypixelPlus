@@ -1,7 +1,8 @@
-import discord
-from discord.ext import commands
 from datetime import datetime
+
+import discord
 import humanize
+from discord.ext import commands
 
 
 class misc(commands.Cog):
@@ -38,6 +39,10 @@ class misc(commands.Cog):
     # async def help(self, ctx):
     #    """Help command"""
     #    await ctx.send('Placeholder help command')
+
+    @commands.command()
+    async def invite(self, ctx):
+        await ctx.send("https://discord.com/api/oauth2/authorize?client_id=706200834198732892&permissions=8&scope=bot")
 
     @commands.command()
     async def support(self, ctx):
