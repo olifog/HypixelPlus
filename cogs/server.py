@@ -9,6 +9,13 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         self.serverdata = None
         self.queue = []
 
+    async def get_member(self, id):
+        member = self.server.get_member(id)
+        if member is None:
+            member = await self.server.fetch_member(id)
+
+        return member
+
     async def update_next_user(self):
         if self.server is None:
             self.server = await self.bot.fetch_guild(self.discordid)
@@ -19,7 +26,11 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
 
         user = self.queue[0]
         self.queue.pop(0)
-        member = self.server.get_member(user['discordid'])
+
+        member = await self.get_member(user['discordid'])
+        if member is None:
+            await self.bot.db.players.update_one({'_id': user['_id']}, {"$pull": {"servers": self.server.id}})
+            return
 
         self.serverdata = await self.bot.db.servers.find_one({"discordid": self.discordid})
 
