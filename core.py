@@ -119,7 +119,7 @@ class HypixelPlus(commands.AutoShardedBot):
             self.logchannel = await self.fetch_channel(710829103003205764)
 
         async for log in self.db.logs.find():
-            e = discord.Embed(color=discord.Color.darker_grey(), description=log)
+            e = discord.Embed(color=discord.Color.darker_grey(), description=log['log'])
             await self.logchannel.send(embed=e)
 
     def run(self):
