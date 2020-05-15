@@ -5,6 +5,7 @@ import traceback
 from datetime import datetime
 from operator import itemgetter
 
+import aiohttp
 import motor.motor_asyncio
 from pytz import timezone
 
@@ -207,6 +208,8 @@ class Updater:
                 await self.update_guild()
             else:
                 await self.update_player()
+        except aiohttp.ContentTypeError:
+            pass
         except Exception:
             await self.log(traceback.format_exc())
 

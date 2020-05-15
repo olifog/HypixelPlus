@@ -90,6 +90,11 @@ class server(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.group(invoke_without_command=True)
+    async def setup(self, ctx):
+        # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
+        # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing
+        await ctx.send("Placeholder")
 
 def setup(bot):
     bot.add_cog(server(bot))

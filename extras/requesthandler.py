@@ -26,6 +26,8 @@ class RequestHandler:
             except ConnectionResetError:
                 tries += 1
 
+        return None
+
     async def getJSON(self, url):
         resp = await self.get(url)
         return await resp.json()
