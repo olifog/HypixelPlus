@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 
@@ -12,7 +13,10 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
     async def get_member(self, id):
         member = self.server.get_member(id)
         if member is None:
-            member = await self.server.fetch_member(id)
+            try:
+                member = await self.server.fetch_member(id)
+            except discord.errors.NotFound:
+                pass
 
         return member
 
