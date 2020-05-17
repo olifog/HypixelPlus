@@ -91,6 +91,8 @@ class server(commands.Cog):
         self.bot = bot
 
     @commands.group(invoke_without_command=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.guild_only()
     async def setup(self, ctx):
         # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
         # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing

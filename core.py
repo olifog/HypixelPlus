@@ -69,6 +69,8 @@ class HypixelPlus(commands.AutoShardedBot):
                 return await ctx.author.send(f'`{ctx.command}` can not be used in Private Messages.')
             except:
                 pass
+        elif isinstance(newerror, commands.CommandOnCooldown):
+            return await ctx.send(f'You can use that command again in `{error.retry_after}` seconds.')
         elif isinstance(newerror, PlayerNotFoundException):
             return await ctx.send('Player not found on Hypixel!')
         elif isinstance(newerror, commands.MissingRequiredArgument):

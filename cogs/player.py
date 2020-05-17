@@ -12,6 +12,7 @@ class player(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def verify(self, ctx, ign):
         """Verify your Minecraft account in Discord!"""
         pdata = await self.bot.db.players.find_one({'discordid': ctx.author.id})
@@ -65,6 +66,7 @@ class player(commands.Cog):
         await ctx.send(vmessage)
 
     @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def unverify(self, ctx):
         msg = await ctx.send("*Finding user...*")
         player = await self.bot.db.players.find_one({'discordid': ctx.author.id})
