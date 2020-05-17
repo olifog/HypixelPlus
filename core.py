@@ -70,7 +70,7 @@ class HypixelPlus(commands.AutoShardedBot):
             except:
                 pass
         elif isinstance(newerror, commands.CommandOnCooldown):
-            return await ctx.send(f'You can use that command again in `{error.retry_after}` seconds.')
+            return await ctx.send(f'You can use that command again in `{round(error.retry_after, 2)}` seconds.')
         elif isinstance(newerror, PlayerNotFoundException):
             return await ctx.send('Player not found on Hypixel!')
         elif isinstance(newerror, commands.MissingRequiredArgument):
