@@ -139,14 +139,16 @@ class server(commands.Cog):
 
     @names.error
     async def names_error(self, ctx, error):
-        newerror = getattr(error, 'original', error)
         serv = await self.server_verified(ctx.guild.id)
-        curformat = serv.get('nameFormat', "none")
 
-        if isinstance(newerror, commands.MissingRequiredArgument):
-            msg = f"Your current naming format is set as `{curformat}`.\n*To change it, please include the format with your command-*"
-            embed, pic = await self.bot.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
-            return await ctx.send(content=msg, embed=embed, file=pic)
+        if serv is not None:
+            newerror = getattr(error, 'original', error)
+            curformat = serv.get('nameFormat', "none")
+
+            if isinstance(newerror, commands.MissingRequiredArgument):
+                msg = f"Your current naming format is set as `{curformat}`.\n*To change it, please include the format with your command-*"
+                embed, pic = await self.bot.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
+                return await ctx.send(content=msg, embed=embed, file=pic)
 
         await self.bot.on_command_error(ctx, error)
 
