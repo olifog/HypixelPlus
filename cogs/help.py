@@ -33,4 +33,4 @@ class help(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog = help(bot)
+    bot.add_cog(help(bot))
