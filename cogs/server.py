@@ -245,9 +245,15 @@ class server(commands.Cog):
 
             await message.edit(content="", embed=embed)
 
+            def reaction_check(reaction, user):
+                return user == ctx.author
+
+            def message_check(m):
+                return m.author == ctx.author
+
             done, pending = await asyncio.wait([
-                self.bot.wait_for('message'),
-                self.bot.wait_for('reaction_add')
+                self.bot.wait_for('message', check=message_check),
+                self.bot.wait_for('reaction_add', check=reaction_check)
             ], timeout=10, return_when=asyncio.FIRST_COMPLETED)
 
             data = None
