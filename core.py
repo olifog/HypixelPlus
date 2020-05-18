@@ -74,7 +74,7 @@ class HypixelPlus(commands.AutoShardedBot):
         elif isinstance(newerror, PlayerNotFoundException):
             return await ctx.send('Player not found on Hypixel!')
         elif isinstance(newerror, commands.MissingRequiredArgument):
-            msg = f"*You're missing the parameter {newerror.param}!*"
+            msg = f"*You're missing the parameter `{newerror.param}`!*"
             embed, pic = await self.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
             return await ctx.send(content=msg, embed=embed, file=pic)
 
