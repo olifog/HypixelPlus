@@ -127,16 +127,28 @@ class server(commands.Cog):
         Will result in players being formatted like this-
         """
 
-        serv = await self.server_verified(ctx.guild.id)
-        if serv is None:
+        result = await self.bot.db.servers.update_one({"discordid": ctx.guild.id}, {"$set": {"nameFormat": format}})
+
+        if result.matched_count == 0:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
-        curformat = serv.get('nameFormat', "")
-        msg = "Your current name config is set as `" + curformat + "`." if curformat is not None else ""
+        count = self.bot.db.players.count_documents({"servers": ctx.guild.id})
 
-        menu = discord.Embed(color=discord.Color.darker_grey())
+        await ctx.send(
+            f"**Updated the format!**\nThe bot will take ~{count} seconds to fully update all the names in this server.")
 
-        await ctx.send(msg, embed=menu)
+    @names.error
+    async def names_error(self, ctx, error):
+        newerror = getattr(error, 'original', error)
+        serv = await self.server_verified(ctx.guild.id)
+        curformat = serv.get('nameFormat', "none")
+
+        if isinstance(newerror, commands.MissingRequiredArgument):
+            msg = f"Your current naming format is set as `{curformat}`.\n*To change it, please include the format with your command-*"
+            embed, pic = await self.bot.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
+            return await ctx.send(content=msg, embed=embed, file=pic)
+
+        await self.bot.on_command_error(ctx, error)
 
 
 def setup(bot):
