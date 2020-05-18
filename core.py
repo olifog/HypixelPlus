@@ -55,10 +55,7 @@ class HypixelPlus(commands.AutoShardedBot):
         ctx = await self.get_context(message)
         await self.invoke(ctx)
 
-    async def on_command_error(self, ctx, error):
-        if hasattr(ctx.command, 'on_error'):
-            return
-
+    async def handle_error(self, ctx, error):
         newerror = getattr(error, 'original', error)
 
         ignored = (commands.CommandNotFound)
@@ -80,6 +77,12 @@ class HypixelPlus(commands.AutoShardedBot):
 
         await self.log(traceback.format_exc())
         await ctx.send("Internal error found. Sorry, please try again later! The developer has been notified.")
+
+    async def on_command_error(self, ctx, error):
+        if hasattr(ctx.command, 'on_error'):
+            return
+
+        await self.handle_error(ctx, error)
 
     async def setup_servers(self):
         async for server in self.db.servers.find():

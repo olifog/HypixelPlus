@@ -150,7 +150,7 @@ class server(commands.Cog):
                 embed, pic = await self.bot.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
                 return await ctx.send(content=msg, embed=embed, file=pic)
 
-        await self.bot.on_command_error(ctx, error)
+        await self.bot.handle_error(ctx, error)
 
 
 def setup(bot):
