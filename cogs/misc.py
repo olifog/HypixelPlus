@@ -19,7 +19,7 @@ class misc(commands.Cog):
         """
         process_time = round(((datetime.utcnow() - ctx.message.created_at).total_seconds()) * 1000)
 
-        e = discord.Embed(color=discord.Color.gold())
+        e = discord.Embed(color=self.bot.theme)
         e.add_field(
             name="**Latency:**",
             value=f"{round(self.bot.latency * 1000)}ms"
@@ -37,11 +37,6 @@ class misc(commands.Cog):
 
         e.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=e)
-
-    # @commands.command()
-    # async def help(self, ctx):
-    #    """Help command"""
-    #    await ctx.send('Placeholder help command')
 
     @commands.command(brief="Invite link")
     async def invite(self, ctx):

@@ -13,7 +13,7 @@ class help(commands.Cog):
         title = command.brief
         url = command.usage
         desc = command.help
-        embed = discord.Embed(colour=discord.Colour.darker_grey(), description=desc)
+        embed = discord.Embed(colour=self.bot.theme, description=desc)
         embed.set_author(name=title, icon_url="https://i.ibb.co/H2cfZ4X/Artboard-1.png")
         if url:
             embed.set_image(url="attachment://help_pic.png")

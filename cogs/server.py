@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 
@@ -76,7 +78,8 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         nick = self.serverdata["nameFormat"].format(ign=user['displayname'],
                                                     level=str(round(user['level'], 2)),
                                                     guildRank=user.get('guildRank', ""),
-                                                    rank=str(user.get("hypixelRank", "")))
+                                                    rank=str(user.get("hypixelRank", "")),
+                                                    username=member.name)
 
         try:
             await member.edit(roles=new_roles, nick=nick)
@@ -104,7 +107,7 @@ class server(commands.Cog):
 
         To set up individual parts of the server's config, use one of the following subcommands:
         - `h+setup names [format]` - specifies how the bot will sync usernames
-        - `...`
+        - `h+setup roles` - sets up players' rank roles
         - `...`
         """
         await ctx.send("Placeholder")
@@ -121,6 +124,7 @@ class server(commands.Cog):
         - `{level}` - is replaced with the user's Hypixel level, rounded
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
         - `{guildRank}` - is replaced with the user's guild rank
+        - `{discord}` - is replaced with the user's discord username
 
         *Note- bots cannot change the nicknames of server owners, so if you own the server your name won't be synced*
 
@@ -154,6 +158,34 @@ class server(commands.Cog):
 
         await self.bot.handle_error(ctx, error)
 
+    async def render_roles(self, roles, index):
+        ret = ""
+
+        x = 0
+        for name, data in roles.items():
+            ret += "\n"
+
+            if x == 0:
+                ret += "**Hypixel ranks:**"
+            elif x == 5:
+                ret += "\n**General roles:**"
+            elif x == 7:
+                ret += "\n**Guild ranks:**"
+
+            if x == index:
+                ret += "<:next:711993456356098049>"
+            else:
+                ret += ":heavy_minus_sign:"
+
+            ret += name + "- " + data
+            x += 1
+
+        return ret
+
+    async def get_mention(self, id, guild):
+        role = guild.get_role(id)
+        return role.mention if role is not None else "*Not set*"
+
     @setup.command(brief="Role config")
     @commands.guild_only()
     async def roles(self, ctx):
@@ -172,7 +204,67 @@ class server(commands.Cog):
 
         *(image here eventually)*
         """
-        pass
+        serv = await self.server_verified(ctx.guild.id)
+        if serv is None:
+            return await ctx.send("Please sync and setup your server first by running `h+setup`!")
+
+        rolelist = {}
+        for rank in serv['hypixelRoles']:
+            rolelist[rank] = await self.get_mention(serv['hypixelRoles'][rank], ctx.guild)
+
+        rolelist["Verified"] = await self.get_mention(serv['verifiedRole'], ctx.guild)
+        rolelist["Unverified"] = await self.get_mention(serv['unverifiedRole'], ctx.guild)
+
+        id = serv.get("guildid")
+        if id is not None:
+            guild_data = await self.bot.guilds.find_one({"guildid": id})
+            new_ranks = guild_data['ranks']
+            update_roles = {}
+
+            for rank in new_ranks:
+                discid = serv['guildRoles'].get(rank['name'], 0)
+                update_roles[rank['name']] = discid
+                rolelist[rank['name']] = discid
+
+            await self.bot.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
+
+        message = await ctx.send("*Loading...*")
+        await message.add_reaction(discord.PartialEmoji(name="up", id=711993208220942428))
+        await message.add_reaction(discord.PartialEmoji(name="down", id=711993054613078036))
+        await message.add_reaction(discord.PartialEmoji(name="add", id=711993256585461791))
+        await message.add_reaction(discord.PartialEmoji(name="remove", id=711993000976449557))
+
+        index = 0
+
+        while True:
+            desc = await self.render_roles(rolelist,
+                                           index) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
+            embed = discord.Embed(colour=self.bot.theme, description=desc)
+            embed.set_author(name="Role config",
+                             icon_url="https://upload-icon.s3.us-east-2.amazonaws.com/uploads/icons/png/2674342741552644384-512.png")
+
+            await message.edit(content="", embed=embed)
+
+            try:
+                done, pending = await asyncio.wait([
+                    self.bot.wait_for('message'),
+                    self.bot.wait_for('reaction_add')
+                ], timeout=10, return_when=asyncio.FIRST_COMPLETED)
+            except asyncio.TimeoutError:
+                await message.edit(content="*Session ended*")
+                break
+
+            data = "No event found"
+
+            try:
+                data = done.pop().result()
+            except Exception:
+                pass
+
+            for future in pending:
+                future.cancel()
+
+            await ctx.send(data)
 
 
 def setup(bot):

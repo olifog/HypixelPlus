@@ -40,6 +40,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.logger = logging.getLogger(__name__)
         self.servers = []
         self.logchannel = None
+        self.theme = discord.Colour(15120192)
 
         self.owner = 404244659024429056
         self.uptime = datetime.now()
