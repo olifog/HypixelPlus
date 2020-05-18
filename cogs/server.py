@@ -107,13 +107,11 @@ class server(commands.Cog):
         - `...`
         - `...`
         """
-        # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
-        # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing
         await ctx.send("Placeholder")
 
     @setup.command(brief="Name config", usage="https://i.ibb.co/t2k7D6f/Screenshot-2020-05-17-at-15-05-45.png")
     @commands.guild_only()
-    async def names(self, ctx):
+    async def names(self, ctx, *, format):
         """
         This specifies how Hypixel+ will format members' names.
         Usage: `h+setup names [format]`

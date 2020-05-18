@@ -66,7 +66,7 @@ class HypixelPlus(commands.AutoShardedBot):
             return
         elif isinstance(newerror, commands.NoPrivateMessage):
             try:
-                return await ctx.author.send(f'`{ctx.command}` can not be used in Private Messages.')
+                return await ctx.author.send(f'`{ctx.command.name}` cannot be used in Private Messages.')
             except:
                 pass
         elif isinstance(newerror, commands.CommandOnCooldown):
@@ -74,9 +74,9 @@ class HypixelPlus(commands.AutoShardedBot):
         elif isinstance(newerror, PlayerNotFoundException):
             return await ctx.send('Player not found on Hypixel!')
         elif isinstance(newerror, commands.MissingRequiredArgument):
-            usage = '```%s%s %s```' % (ctx.prefix, ctx.command.qualified_name, ctx.command.signature)
-            msg = f"*You're missing the parameter {newerror.param}!*\nUsage of `{ctx.command}`:\n> {usage}"
-            return await ctx.send(msg)
+            msg = f"*You're missing the parameter {newerror.param}!*"
+            embed, pic = await self.cogs['help'].get_command_help_embed(ctx.command.name)
+            return await ctx.send(content=msg, embed=embed, file=pic)
 
         await self.log(traceback.format_exc())
         await ctx.send("Internal error found. Sorry, please try again later! The developer has been notified.")
