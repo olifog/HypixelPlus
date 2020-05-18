@@ -166,8 +166,8 @@ class server(commands.Cog):
         **Menu navigation:**
         - *change the selected role with the* <:up:711993208220942428> *and* <:down:711993054613078036> *arrows*
         - *press the* <:add:711993256585461791> *button for the bot to create/sync that role automatically*
-        - press the <:remove:711993000976449557> button for the bot to unsync that role
-        - to sync an existing role, send the @role in the same channel as the menu, with the right role selected in the menu.
+        - *press the* <:remove:711993000976449557> *button for the bot to unsync that role*
+        - *to sync an existing role, send the @role in the same channel as the menu, with the right role selected in the menu.*
         For example, if you already have an 'MVP+' role, and you don't want the bot to create a new one, do the following:
 
         *(image here eventually)*
