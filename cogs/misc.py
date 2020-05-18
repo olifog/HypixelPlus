@@ -11,9 +11,12 @@ class misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(brief="Bot info")
     async def info(self, ctx):
-        """Check bot ping, latency and info"""
+        """
+        Check the bot's ping, latency and info.
+        Usage: `h+info`
+        """
         process_time = round(((datetime.utcnow() - ctx.message.created_at).total_seconds()) * 1000)
 
         e = discord.Embed(color=discord.Color.gold())
@@ -40,13 +43,21 @@ class misc(commands.Cog):
     #    """Help command"""
     #    await ctx.send('Placeholder help command')
 
-    @commands.command()
+    @commands.command(brief="Invite link")
     async def invite(self, ctx):
+        """
+        Sends the bot's invite link, if you want to invite it to other servers!
+        Usage: `h+invite`
+        """
         await ctx.send("https://discord.com/api/oauth2/authorize?client_id=706200834198732892&permissions=8&scope=bot")
 
-    @commands.command()
+    @commands.command(brief="Support us!",
+                      usage="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Heart_coraz%C3%B3n.svg/1200px-Heart_coraz%C3%B3n.svg.png")
     async def support(self, ctx):
-        """Support the development of the bot!"""
+        """
+        Support the development of the bot!
+        Usage: `h+support`
+        """
         await ctx.send('give us money please (except not yet we haven\'t set it up yet)')
 
 

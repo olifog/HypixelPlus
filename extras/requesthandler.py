@@ -2,6 +2,7 @@ from io import BytesIO
 
 import aiohttp
 import discord
+from aiohttp import ClientOSError
 
 
 class RequestHandler:
@@ -23,7 +24,7 @@ class RequestHandler:
                 async with self.session.get(url) as r:
                     await r.read()
                     return r
-            except ConnectionResetError:
+            except (ConnectionResetError, ClientOSError):
                 tries += 1
 
         return None

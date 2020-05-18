@@ -90,13 +90,56 @@ class server(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(invoke_without_command=True)
+    async def server_verified(self, discordid):
+        async for serv in self.bot.db.servers.find({"discordid": discordid}):
+            return serv
+
+    @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def setup(self, ctx):
+        """
+        This command will walk you through setting up the Discord server, syncing it with Hypixel.
+        Usage: `h+setup`
+
+        To set up individual parts of the server's config, use one of the following subcommands:
+          `h+setup names [format]` - specifies how the bot will sync usernames
+          `...`
+          `...`
+        """
         # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
         # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing
         await ctx.send("Placeholder")
+
+    @setup.command(brief="Name config", usage="https://ibb.co/NNQ8Kqh")
+    @commands.guild_only()
+    async def names(self, ctx):
+        """
+        This specifies how Hypixel+ will format members' names.
+        Usage: `h+setup names [format]`
+
+        **Options:**
+          `{ign}` - is replaced with the user's MC username
+          `{level}` - is replaced with the user's Hypixel level, rounded
+          `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
+          `{guildRank}` - is replaced with the user's guild rank
+
+        For example, using the command like this-
+        `h+setup names [{rank}] {ign}, {guildRank} | {level}`
+        Will result in players being formatted like this-
+        """
+
+        serv = await self.server_verified(ctx.guild.id)
+        if serv is None:
+            return await ctx.send("Please sync and setup your server first by running `h+setup`!")
+
+        curformat = serv.get('nameFormat', "")
+        msg = "Your current name config is set as `" + curformat + "`." if curformat is not None else ""
+
+        menu = discord.Embed(color=discord.Color.darker_grey())
+
+        await ctx.send(msg, embed=menu)
+
 
 def setup(bot):
     bot.add_cog(server(bot))

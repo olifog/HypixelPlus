@@ -11,10 +11,13 @@ class player(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(brief="Verifying your account")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def verify(self, ctx, ign):
-        """Verify your Minecraft account in Discord!"""
+        """
+        This command verifies your Minecraft account within Discord, enabling the bot to sync your name/rank across servers.
+        Usage: `h+verify [mc username]`
+        """
         pdata = await self.bot.db.players.find_one({'discordid': ctx.author.id})
 
         if pdata is not None:
@@ -65,9 +68,13 @@ class player(commands.Cog):
 
         await ctx.send(vmessage)
 
-    @commands.command()
+    @commands.command(brief="Unverify")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def unverify(self, ctx):
+        """
+        Unverifies your account on the bot. You can always verify again with `h+verify`.
+        Usage: `h+unverify`
+        """
         msg = await ctx.send("*Finding user...*")
         player = await self.bot.db.players.find_one({'discordid': ctx.author.id})
 
