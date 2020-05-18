@@ -103,15 +103,15 @@ class server(commands.Cog):
         Usage: `h+setup`
 
         To set up individual parts of the server's config, use one of the following subcommands:
-          `h+setup names [format]` - specifies how the bot will sync usernames
-          `...`
-          `...`
+            `h+setup names [format]` - specifies how the bot will sync usernames
+            `...`
+            `...`
         """
         # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
         # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing
         await ctx.send("Placeholder")
 
-    @setup.command(brief="Name config", usage="https://ibb.co/NNQ8Kqh")
+    @setup.command(brief="Name config", usage="https://i.ibb.co/t2k7D6f/Screenshot-2020-05-17-at-15-05-45.png")
     @commands.guild_only()
     async def names(self, ctx):
         """
@@ -119,10 +119,10 @@ class server(commands.Cog):
         Usage: `h+setup names [format]`
 
         **Options:**
-          `{ign}` - is replaced with the user's MC username
-          `{level}` - is replaced with the user's Hypixel level, rounded
-          `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
-          `{guildRank}` - is replaced with the user's guild rank
+            `{ign}` - is replaced with the user's MC username
+            `{level}` - is replaced with the user's Hypixel level, rounded
+            `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
+            `{guildRank}` - is replaced with the user's guild rank
 
         For example, using the command like this-
         `h+setup names [{rank}] {ign}, {guildRank} | {level}`

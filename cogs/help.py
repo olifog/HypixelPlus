@@ -1,5 +1,3 @@
-from typing import Optional
-
 import discord
 from discord.ext import commands
 
@@ -16,7 +14,7 @@ class help(commands.Cog):
         url = command.usage
         desc = command.help
         embed = discord.Embed(colour=discord.Colour.darker_grey(), description=desc)
-        embed.set_author(name=title, url="https://ibb.co/GJZ4mpF")
+        embed.set_author(name=title, url="https://i.ibb.co/H2cfZ4X/Artboard-1.png")
         if url:
             embed.set_image(url="attachment://help_pic.png")
             return embed, await self.bot.handler.getPic(url, "help_pic.png")
@@ -24,8 +22,8 @@ class help(commands.Cog):
             return embed, None
 
     @commands.command()
-    async def help(self, ctx, command: Optional[str]):
-        if command:
+    async def help(self, ctx, *, command):
+        if len(command) > 0:
             embed, pic = await self.get_command_help_embed(command)
             return await ctx.send(embed=embed, file=pic)
 
