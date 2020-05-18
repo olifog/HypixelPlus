@@ -103,9 +103,9 @@ class server(commands.Cog):
         Usage: `h+setup`
 
         To set up individual parts of the server's config, use one of the following subcommands:
-            `h+setup names [format]` - specifies how the bot will sync usernames
-            `...`
-            `...`
+        - `h+setup names [format]` - specifies how the bot will sync usernames
+        - `...`
+        - `...`
         """
         # TODO: Create bot-wide embed system, with timestamp/author icon + formatting + reaction menus
         # TODO: Ask the user whether they want a setup walk-through or whether they just want to setup one thing
@@ -119,10 +119,10 @@ class server(commands.Cog):
         Usage: `h+setup names [format]`
 
         **Options:**
-            `{ign}` - is replaced with the user's MC username
-            `{level}` - is replaced with the user's Hypixel level, rounded
-            `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
-            `{guildRank}` - is replaced with the user's guild rank
+        - `{ign}` - is replaced with the user's MC username
+        - `{level}` - is replaced with the user's Hypixel level, rounded
+        - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
+        - `{guildRank}` - is replaced with the user's guild rank
 
         For example, using the command like this-
         `h+setup names [{rank}] {ign}, {guildRank} | {level}`

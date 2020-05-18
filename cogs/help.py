@@ -14,7 +14,7 @@ class help(commands.Cog):
         url = command.usage
         desc = command.help
         embed = discord.Embed(colour=discord.Colour.darker_grey(), description=desc)
-        embed.set_author(name=title, url="https://i.ibb.co/H2cfZ4X/Artboard-1.png")
+        embed.set_author(name=title, icon_url="https://i.ibb.co/H2cfZ4X/Artboard-1.png")
         if url:
             embed.set_image(url="attachment://help_pic.png")
             return embed, await self.bot.handler.getPic(url, "help_pic.png")
