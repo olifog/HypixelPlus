@@ -122,6 +122,8 @@ class server(commands.Cog):
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
         - `{guildRank}` - is replaced with the user's guild rank
 
+        *Note- bots cannot change the nicknames of server owners, so if you own the server your name won't be synced*
+
         For example, using the command like this-
         `h+setup names [{rank}] {ign}, {guildRank} | {level}`
         Will result in players being formatted like this-
@@ -151,6 +153,26 @@ class server(commands.Cog):
                 return await ctx.send(content=msg, embed=embed, file=pic)
 
         await self.bot.handle_error(ctx, error)
+
+    @setup.command(brief="Role config")
+    @commands.guild_only()
+    async def roles(self, ctx):
+        """
+        This command sets up what roles Hypixel+ will apply to users in your server.
+        Usage: `h+setup roles`
+
+        It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and Verified/Unverified roles.
+
+        **Menu navigation:**
+        - change the selected role with the up/down arrows
+        - press the + button for the bot to create/sync that role automatically
+        - press the X button for the bot to unsync that role
+        - to sync an existing role, send the @role in the same channel as the menu, with the right role selected in the menu.
+        For example, if you already have an 'MVP+' role, and you don't want the bot to create a new one, do the following:
+
+        *(image here eventually)*
+        """
+        pass
 
 
 def setup(bot):
