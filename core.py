@@ -86,6 +86,7 @@ class HypixelPlus(commands.AutoShardedBot):
             self.servers.append(LinkedServer(self, server['discordid']))
 
     async def on_ready(self):
+        self.remove_command('help')
         if not self.cogs:
             await self.load_mods()
 
