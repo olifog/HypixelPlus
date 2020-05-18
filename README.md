@@ -1,4 +1,4 @@
 # HypixelPlus
 
-Source-code for the upcoming Hypixel+ Discord bot.
+Source-code for the Hypixel+ Discord bot.
 
