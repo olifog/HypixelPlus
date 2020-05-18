@@ -245,16 +245,12 @@ class server(commands.Cog):
 
             await message.edit(content="", embed=embed)
 
-            try:
-                done, pending = await asyncio.wait([
-                    self.bot.wait_for('message'),
-                    self.bot.wait_for('reaction_add')
-                ], timeout=10, return_when=asyncio.FIRST_COMPLETED)
-            except asyncio.TimeoutError:
-                await message.edit(content="*Session ended*")
-                break
+            done, pending = await asyncio.wait([
+                self.bot.wait_for('message'),
+                self.bot.wait_for('reaction_add')
+            ], timeout=10, return_when=asyncio.FIRST_COMPLETED)
 
-            data = "No event found"
+            data = None
 
             try:
                 data = done.pop().result()
@@ -263,6 +259,10 @@ class server(commands.Cog):
 
             for future in pending:
                 future.cancel()
+
+            if data is None:
+                await message.edit(content="*Session ended*")
+                break
 
             await ctx.send(data)
 
