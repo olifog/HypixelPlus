@@ -311,7 +311,7 @@ class server(commands.Cog):
                     index += 1
                 elif reaction == "add":
                     if rolevals[index].mention == "*Not set*":
-                        colour = self.bot.rolecolours.get(rolekeys[index], discord.colour.default())
+                        colour = self.bot.rolecolours.get(rolekeys[index], discord.Colour.default())
                         newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
                         rolelist[rolekeys[index]] = newrole
                         rolekeys = list(rolelist.keys())
