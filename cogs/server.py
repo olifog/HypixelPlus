@@ -298,7 +298,7 @@ class server(commands.Cog):
                 elif reaction == "down":
                     index += 1
                 elif reaction == "add":
-                    if rolevals[index] == "Not set*":
+                    if rolevals[index] == "*Not set*":
                         colour = self.bot.rolecolours.get(rolekeys[index])
                         newrole = ctx.guild.create_role(rolekeys[index], colour=colour)
                         rolelist[rolekeys[index]] = newrole.mention
