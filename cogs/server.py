@@ -97,7 +97,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             pass
 
         try:
-            await member.edit(roles=new_roles, nick=nick)
+            await member.edit(roles=[x for x in new_roles if x is not None], nick=nick)
         except Exception as e:
             raise e
 
