@@ -22,7 +22,7 @@ class help(commands.Cog):
         embed.set_author(name=title, icon_url="https://i.ibb.co/H2cfZ4X/Artboard-1.png")
         if url:
             embed.set_image(url="attachment://help_pic.png")
-            return embed, await self.bot.handler.getPic(url, "help_pic.png")
+            return embed, discord.File(url, "help_pic.png")
         else:
             return embed, None
 

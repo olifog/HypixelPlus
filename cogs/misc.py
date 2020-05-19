@@ -46,8 +46,7 @@ class misc(commands.Cog):
         """
         await ctx.send("https://discord.com/api/oauth2/authorize?client_id=706200834198732892&permissions=8&scope=bot")
 
-    @commands.command(brief="Support us!",
-                      usage="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Heart_coraz%C3%B3n.svg/1200px-Heart_coraz%C3%B3n.svg.png")
+    @commands.command(brief="Support us!")
     async def support(self, ctx):
         """
         Support the development of the bot!

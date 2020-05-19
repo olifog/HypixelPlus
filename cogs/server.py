@@ -127,7 +127,7 @@ class server(commands.Cog):
         """
         await ctx.send("Placeholder")
 
-    @setup.command(brief="Name config", usage="https://i.ibb.co/t2k7D6f/Screenshot-2020-05-17-at-15-05-45.png")
+    @setup.command(brief="Name config", usage="./data/name_config_help.png")
     @commands.guild_only()
     async def names(self, ctx, *, format):
         """
@@ -201,7 +201,7 @@ class server(commands.Cog):
         role = guild.get_role(id)
         return role if role is not None else DummyRole()
 
-    @setup.command(brief="Role config")
+    @setup.command(brief="Role config", usage="./data/role_config_help.png")
     @commands.guild_only()
     async def roles(self, ctx):
         """
@@ -217,8 +217,6 @@ class server(commands.Cog):
         - *to sync an existing role, send the @role in the same channel as the menu, with the right role selected in the menu.*
 
         For example, if you already have an 'MVP+' role, and you don't want the bot to create a new one, do the following:
-
-        *(image here eventually)*
         """
         serv = await self.server_verified(ctx.guild.id)
         if serv is None:
