@@ -335,6 +335,8 @@ class server(commands.Cog):
 
                 index %= len(rolelist)
 
+        await ctx.send(rolelist)
+
         update = {}
         update['verifiedRole'] = rolelist['Verified'].id
         update['unverifiedRole'] = rolelist['Unverified'].id
