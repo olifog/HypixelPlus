@@ -312,6 +312,9 @@ class server(commands.Cog):
                 elif reaction == "add":
                     if rolevals[index].mention == "*Not set*":
                         await ctx.send(rolekeys[index])
+                        await ctx.send(self.bot)
+                        await ctx.send(self.bot.rolecolours)
+                        await ctx.send(self.bot.rolecolours.get(rolekeys[index]))
                         colour = self.bot.rolecolours.get(rolekeys[index])
                         await ctx.send(colour)
                         newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
