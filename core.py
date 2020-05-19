@@ -84,7 +84,7 @@ class HypixelPlus(commands.AutoShardedBot):
             embed, pic = await self.cogs['help'].get_command_help_embed(ctx.command.qualified_name)
             return await ctx.send(content=msg, embed=embed, file=pic)
 
-        await self.log(traceback.format_exc())
+        await self.log(str(newerror) + "\n" + traceback.format_exc())
         await ctx.send("Internal error found. Sorry, please try again later! The developer has been notified.")
 
     async def on_command_error(self, ctx, error):
