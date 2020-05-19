@@ -262,12 +262,12 @@ class server(commands.Cog):
                 return user == ctx.author
 
             def message_check(m):
-                return m.author == ctx.author
+                return m.author == ctx.author and len(m.role_mentions) == 1
 
             done, pending = await asyncio.wait([
                 self.bot.wait_for('message', check=message_check),
                 self.bot.wait_for('reaction_add', check=reaction_check)
-            ], timeout=10, return_when=asyncio.FIRST_COMPLETED)
+            ], timeout=20, return_when=asyncio.FIRST_COMPLETED)
 
             data = None
 
@@ -284,7 +284,10 @@ class server(commands.Cog):
                 break
 
             if isinstance(data, discord.Message):
-                pass
+                role = data.role_mentions[0]
+                rolelist[rolekeys[index]] = role.mention
+                rolekeys = list(rolelist.keys())
+                rolevals = list(rolelist.values())
             else:
                 await message.remove_reaction(data[0], data[1])
                 reaction = data[0]
@@ -300,11 +303,7 @@ class server(commands.Cog):
                 elif reaction == "add":
                     if rolevals[index] == "*Not set*":
                         colour = self.bot.rolecolours.get(rolekeys[index])
-                        await ctx.send(ctx.guild)
-                        await ctx.send(rolekeys[index])
-                        await ctx.send(colour)
-                        newrole = ctx.guild.create_role(rolekeys[index], colour=colour)
-                        await ctx.send(newrole)
+                        newrole = await ctx.guild.create_role(rolekeys[index], colour=colour)
                         rolelist[rolekeys[index]] = newrole.mention
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
