@@ -231,6 +231,8 @@ class server(commands.Cog):
         rolelist["Verified"] = await self.get_optional_role(serv['verifiedRole'], ctx.guild)
         rolelist["Unverified"] = await self.get_optional_role(serv['unverifiedRole'], ctx.guild)
 
+        update_roles = {}
+
         id = serv.get("guildid")
         if id is not None:
             guild_data = await self.bot.guilds.find_one({"guildid": id})
@@ -333,7 +335,20 @@ class server(commands.Cog):
 
                 index %= len(rolelist)
 
-        pass  # update DB here
+        update = {}
+        update['verifiedRole'] = rolelist['Verified'].id
+        update['unverifiedRole'] = rolelist['Unverified'].id
+        hyproles = {}
+        for rank in serv['hypixelRoles']:
+            hyproles[rank] = rolelist[rank].id
+
+        if id is not None:
+            for rank in update_roles:
+                update_roles[rank] = rolelist[rank].id
+
+            update['guildRoles'] = update_roles
+
+        await self.bot.db.servers.update_one({"_id": serv["_id"]}, {"$set": update})
 
 
 def setup(bot):
