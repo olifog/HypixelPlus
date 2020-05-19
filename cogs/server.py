@@ -298,7 +298,7 @@ class server(commands.Cog):
                 elif reaction == "down":
                     index += 1
                 elif reaction == "add":
-                    if rolevals[index] is None:
+                    if rolevals[index] == "Not set*":
                         colour = self.bot.rolecolours.get(rolekeys[index])
                         newrole = ctx.guild.create_role(rolekeys[index], colour=colour)
                         rolelist[rolekeys[index]] = newrole.mention
@@ -307,12 +307,10 @@ class server(commands.Cog):
                     else:
                         await ctx.send("There's already a role synced for that selection!", delete_after=5)
                 elif reaction == "remove":
-                    await ctx.send(rolevals)
-                    await ctx.send(rolekeys)
-                    if rolevals[index] is None:
+                    if rolevals[index] == "*Not set*":
                         await ctx.send("There's no role synced there to remove!", delete_after=5)
                     else:
-                        rolelist[rolekeys[index]] = None
+                        rolelist[rolekeys[index]] = "*Not set*"
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
 
