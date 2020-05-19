@@ -250,7 +250,7 @@ class server(commands.Cog):
                 update_roles[rank['name']] = discid
                 rolelist[rank['name']] = discid
 
-            await self.bot.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
+            await self.bot.db.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
 
         rolekeys = list(rolelist.keys())
         rolevals = list(rolelist.values())
