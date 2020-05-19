@@ -307,6 +307,8 @@ class server(commands.Cog):
                     else:
                         await ctx.send("There's already a role synced for that selection!", delete_after=5)
                 elif reaction == "remove":
+                    await ctx.send(rolevals)
+                    await ctx.send(rolekeys)
                     if rolevals[index] is None:
                         await ctx.send("There's no role synced there to remove!", delete_after=5)
                     else:
