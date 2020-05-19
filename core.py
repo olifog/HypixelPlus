@@ -40,10 +40,18 @@ class HypixelPlus(commands.AutoShardedBot):
         self.logger = logging.getLogger(__name__)
         self.servers = {}
         self.logchannel = None
-        self.theme = discord.Colour(15120192)
 
         self.owner = 404244659024429056
         self.uptime = datetime.now()
+
+        self.theme = discord.Colour(15120192)
+        self.rolecolours = {
+            "VIP": discord.Colour(5635925),
+            "VIP+": discord.Colour(5635925),
+            "MVP": discord.Colour(5636095),
+            "MVP+": discord.Colour(5636095),
+            "MVP++": discord.Colour(16755200)
+        }
 
     async def log(self, msg):
         timestamp = datetime.now()

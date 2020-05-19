@@ -209,6 +209,7 @@ class server(commands.Cog):
         - *press the* <:add:711993256585461791> *button for the bot to create/sync that role automatically*
         - *press the* <:remove:711993000976449557> *button for the bot to unsync that role*
         - *to sync an existing role, send the @role in the same channel as the menu, with the right role selected in the menu.*
+
         For example, if you already have an 'MVP+' role, and you don't want the bot to create a new one, do the following:
 
         *(image here eventually)*
@@ -236,6 +237,9 @@ class server(commands.Cog):
                 rolelist[rank['name']] = discid
 
             await self.bot.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
+
+        rolekeys = list(rolelist.keys())
+        rolevals = list(rolelist.values())
 
         message = await ctx.send("*Loading...*")
         await message.add_reaction(discord.PartialEmoji(name="up", id=711993208220942428))
@@ -294,11 +298,25 @@ class server(commands.Cog):
                 elif reaction == "down":
                     index += 1
                 elif reaction == "add":
-                    pass
+                    if rolevals[index] is None:
+                        colour = self.bot.rolecolours.get(rolekeys[index])
+                        newrole = ctx.guild.create_role(rolekeys[index], colour=colour)
+                        rolelist[rolekeys[index]] = newrole.mention
+                        rolekeys = list(rolelist.keys())
+                        rolevals = list(rolelist.values())
+                    else:
+                        await ctx.send("There's already a role synced for that selection!", delete_after=5)
                 elif reaction == "remove":
-                    pass
+                    if rolevals[index] is None:
+                        await ctx.send("There's no role synced there to remove!", delete_after=5)
+                    else:
+                        rolelist[rolekeys[index]] = None
+                        rolekeys = list(rolelist.keys())
+                        rolevals = list(rolelist.values())
 
                 index %= len(rolelist)
+
+        pass  # update DB here
 
 
 def setup(bot):
