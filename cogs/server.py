@@ -11,6 +11,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         self.server = self.bot.get_guild(self.discordid)
         self.serverdata = None
         self.queue = []
+        self.empty = False
 
     async def get_member(self, id):
         member = self.server.get_member(id)
@@ -23,6 +24,9 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
         return member
 
     async def update_next_user(self):
+        if self.empty:
+            return
+
         if self.server is None:
             self.server = await self.bot.fetch_guild(self.discordid)
 
@@ -30,7 +34,12 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             async for user in self.bot.db.players.find({"servers": self.discordid}):
                 self.queue.append(user)
 
-        user = self.queue[0]
+        try:
+            user = self.queue[0]
+        except KeyError:
+            self.empty = True
+            return
+
         self.queue.pop(0)
 
         member = await self.get_member(user['discordid'])

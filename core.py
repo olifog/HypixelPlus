@@ -38,7 +38,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.handler = RequestHandler(asyncio.get_event_loop())
         self.hypixelapi = HypixelAPI(self.settings['bot_api_key'], self.handler)
         self.logger = logging.getLogger(__name__)
-        self.servers = []
+        self.servers = {}
         self.logchannel = None
         self.theme = discord.Colour(15120192)
 
@@ -87,7 +87,7 @@ class HypixelPlus(commands.AutoShardedBot):
 
     async def setup_servers(self):
         async for server in self.db.servers.find():
-            self.servers.append(LinkedServer(self, server['discordid']))
+            self.servers[server['discordid']] = LinkedServer(self, server['discordid'])
 
     async def on_ready(self):
         self.remove_command('help')
@@ -116,7 +116,7 @@ class HypixelPlus(commands.AutoShardedBot):
 
     @tasks.loop(seconds=1)
     async def update_next_users(self):
-        for server in self.servers:
+        for server in self.servers.values():
             try:
                 await server.update_next_user()
             except Exception:
