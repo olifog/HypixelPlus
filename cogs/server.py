@@ -279,7 +279,26 @@ class server(commands.Cog):
                 await message.edit(content="*Session ended*")
                 break
 
-            await ctx.send(data)
+            if isinstance(data, discord.Message):
+                pass
+            else:
+                await message.remove_reaction(data[0], data[1])
+                reaction = data[0]
+                try:
+                    reaction = reaction.emoji.name
+                except AttributeError:
+                    reaction = reaction.emoji
+
+                if reaction == "up":
+                    index -= 1
+                elif reaction == "down":
+                    index += 1
+                elif reaction == "add":
+                    pass
+                elif reaction == "remove":
+                    pass
+
+                index %= len(rolelist)
 
 
 def setup(bot):
