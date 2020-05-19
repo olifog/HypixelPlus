@@ -313,8 +313,12 @@ class server(commands.Cog):
                     if rolevals[index].mention == "*Not set*":
                         colour = self.bot.rolecolours.get(rolekeys[index])
                         await ctx.send("Debug 1")
-                        newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
-                        await ctx.send(newrole)
+                        newrole = None
+                        try:
+                            newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
+                        except Exception as e:
+                            await ctx.send(e)
+                            await ctx.send(traceback.format_exc())
                         rolelist[rolekeys[index]] = newrole
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
