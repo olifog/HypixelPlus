@@ -10,6 +10,11 @@ class help(commands.Cog):
 
     async def get_command_help_embed(self, commandname):  # returns Embed + potential discord.File
         command = self.bot.get_command(commandname)
+
+        if command is None:
+            embed = discord.Embed(colour=self.bot.theme, description=f"Sorry, I can't find the command `{commandname}`")
+            return embed, None
+
         title = command.brief
         url = command.usage
         desc = command.help
