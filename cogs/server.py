@@ -85,19 +85,18 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             if role.id not in guild_applicable_roles:
                 new_roles.append(role)
 
-        nick = member.nick
-
         try:
             nick = self.serverdata["nameFormat"].format(ign=user['displayname'],
                                                         level=str(round(user['level'], 2)),
                                                         guildRank=user.get('guildRank', ""),
                                                         rank=str(user.get("hypixelRank", "")),
                                                         username=member.name)
+            await member.edit(roles=[x for x in new_roles if x is not None], nick=nick)
         except KeyError:
             pass
 
         try:
-            await member.edit(roles=[x for x in new_roles if x is not None], nick=nick)
+            await member.edit(roles=[x for x in new_roles if x is not None])
         except Exception as e:
             raise e
 
