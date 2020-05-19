@@ -248,7 +248,7 @@ class server(commands.Cog):
             for rank in new_ranks:
                 discid = serv['guildRoles'].get(rank['name'], 0)
                 update_roles[rank['name']] = discid
-                rolelist[rank['name']] = discid
+                rolelist[rank['name']] = await self.get_optional_role(discid, ctx.guild)
 
             await self.bot.db.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
 
