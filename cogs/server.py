@@ -2,6 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
+from extras import checks
 
 
 class LinkedServer(object):  # Object that references a linked Discord server. Basically handles updating the next user
@@ -115,6 +116,7 @@ class server(commands.Cog):
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
+    @checks.serverowner_or_permissions(manage_server=True)
     async def setup(self, ctx):
         """
         This command will walk you through setting up the Discord server, syncing it with Hypixel.
@@ -129,6 +131,7 @@ class server(commands.Cog):
 
     @setup.command(brief="Name config", usage="./data/name_config_help.png")
     @commands.guild_only()
+    @checks.serverowner_or_permissions(manage_server=True)
     async def names(self, ctx, *, format):
         """
         This specifies how Hypixel+ will format members' names.
@@ -203,6 +206,7 @@ class server(commands.Cog):
 
     @setup.command(brief="Role config", usage="./data/role_config_help.png")
     @commands.guild_only()
+    @checks.serverowner_or_permissions(manage_server=True)
     async def roles(self, ctx):
         """
         This command sets up what roles Hypixel+ will apply to users in your server.
