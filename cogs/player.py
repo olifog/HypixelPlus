@@ -47,9 +47,10 @@ class player(commands.Cog):
                       'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1)}
             servers = []
 
-            for server in self.bot.servers:
+            for server in self.bot.servers.values():
                 for m in server.server.members:
                     if m.id == ctx.author.id:
+                        server.empty = False
                         servers.append(server.discordid)
 
             member['servers'] = servers
