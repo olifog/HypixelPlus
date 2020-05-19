@@ -166,11 +166,11 @@ class server(commands.Cog):
             ret += "\n"
 
             if x == 0:
-                ret += "**Hypixel ranks:**"
+                ret += "**Hypixel ranks:**\n"
             elif x == 5:
-                ret += "\n**General roles:**"
+                ret += "\n**General roles:**\n"
             elif x == 7:
-                ret += "\n**Guild ranks:**"
+                ret += "\n**Guild ranks:**\n"
 
             if x == index:
                 ret += "<:next:711993456356098049>"
