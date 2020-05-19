@@ -36,7 +36,7 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
 
         try:
             user = self.queue[0]
-        except KeyError:
+        except IndexError:
             self.empty = True
             return
 
