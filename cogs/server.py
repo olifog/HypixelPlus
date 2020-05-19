@@ -335,14 +335,14 @@ class server(commands.Cog):
 
                 index %= len(rolelist)
 
-        await ctx.send(rolelist)
-
         update = {}
         update['verifiedRole'] = rolelist['Verified'].id
         update['unverifiedRole'] = rolelist['Unverified'].id
         hyproles = {}
         for rank in serv['hypixelRoles']:
             hyproles[rank] = rolelist[rank].id
+
+        update['hypixelRoles'] = hyproles
 
         if id is not None:
             for rank in update_roles:
