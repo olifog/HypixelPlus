@@ -241,7 +241,7 @@ class server(commands.Cog):
 
         id = serv.get("guildid")
         if id is not None:
-            guild_data = await self.bot.guilds.find_one({"guildid": id})
+            guild_data = await self.bot.db.guilds.find_one({"guildid": id})
             new_ranks = guild_data['ranks']
             update_roles = {}
 
