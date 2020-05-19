@@ -96,6 +96,12 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             raise e
 
 
+class DummyRole:
+    def __init__(self):
+        self.mention = "*Not set*"
+        self.id = 0
+
+
 class server(commands.Cog):
     """Server commands"""
 
@@ -171,7 +177,7 @@ class server(commands.Cog):
         ret = ""
 
         x = 0
-        for name, data in roles.items():
+        for name, role in roles.items():
             ret += "\n"
 
             if x == 0:
@@ -186,14 +192,14 @@ class server(commands.Cog):
             else:
                 ret += ":heavy_minus_sign:"
 
-            ret += name + "- " + data
+            ret += name + "- " + role.mention
             x += 1
 
         return ret
 
-    async def get_mention(self, id, guild):
+    async def get_optional_role(self, id, guild):
         role = guild.get_role(id)
-        return role.mention if role is not None else "*Not set*"
+        return role if role is not None else DummyRole()
 
     @setup.command(brief="Role config")
     @commands.guild_only()
@@ -220,10 +226,10 @@ class server(commands.Cog):
 
         rolelist = {}
         for rank in serv['hypixelRoles']:
-            rolelist[rank] = await self.get_mention(serv['hypixelRoles'][rank], ctx.guild)
+            rolelist[rank] = await self.get_optional_role(serv['hypixelRoles'][rank], ctx.guild)
 
-        rolelist["Verified"] = await self.get_mention(serv['verifiedRole'], ctx.guild)
-        rolelist["Unverified"] = await self.get_mention(serv['unverifiedRole'], ctx.guild)
+        rolelist["Verified"] = await self.get_optional_role(serv['verifiedRole'], ctx.guild)
+        rolelist["Unverified"] = await self.get_optional_role(serv['unverifiedRole'], ctx.guild)
 
         id = serv.get("guildid")
         if id is not None:
@@ -284,10 +290,13 @@ class server(commands.Cog):
                 break
 
             if isinstance(data, discord.Message):
-                role = data.role_mentions[0]
-                rolelist[rolekeys[index]] = role.mention
-                rolekeys = list(rolelist.keys())
-                rolevals = list(rolelist.values())
+                if rolevals[index].mention == "*Not set*":
+                    role = data.role_mentions[0]
+                    rolelist[rolekeys[index]] = role
+                    rolekeys = list(rolelist.keys())
+                    rolevals = list(rolelist.values())
+                else:
+                    await ctx.send("There's already a role synced for that selection!", delete_after=5)
             else:
                 await message.remove_reaction(data[0], data[1])
                 reaction = data[0]
@@ -301,19 +310,19 @@ class server(commands.Cog):
                 elif reaction == "down":
                     index += 1
                 elif reaction == "add":
-                    if rolevals[index] == "*Not set*":
+                    if rolevals[index].mention == "*Not set*":
                         colour = self.bot.rolecolours.get(rolekeys[index])
                         newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
-                        rolelist[rolekeys[index]] = newrole.mention
+                        rolelist[rolekeys[index]] = newrole
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
                     else:
                         await ctx.send("There's already a role synced for that selection!", delete_after=5)
                 elif reaction == "remove":
-                    if rolevals[index] == "*Not set*":
+                    if rolevals[index].mention == "*Not set*":
                         await ctx.send("There's no role synced there to remove!", delete_after=5)
                     else:
-                        rolelist[rolekeys[index]] = "*Not set*"
+                        rolelist[rolekeys[index]] = DummyRole()
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
 
