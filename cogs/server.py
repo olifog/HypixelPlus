@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 import discord
 from discord.ext import commands
@@ -312,16 +311,8 @@ class server(commands.Cog):
                     index += 1
                 elif reaction == "add":
                     if rolevals[index].mention == "*Not set*":
-                        await ctx.send(rolekeys[index])
-                        await ctx.send(self.bot)
-                        await ctx.send(self.bot.rolecolours)
-                        try:
-                            await ctx.send(self.bot.rolecolours.get(rolekeys[index]))
-                        except Exception as e:
-                            await ctx.send(e)
-                            await ctx.send(traceback.print_exc())
                         colour = self.bot.rolecolours.get(rolekeys[index])
-                        await ctx.send(colour)
+                        await ctx.send("Debug 1")
                         newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
                         await ctx.send(newrole)
                         rolelist[rolekeys[index]] = newrole
