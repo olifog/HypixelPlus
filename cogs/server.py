@@ -252,6 +252,7 @@ class server(commands.Cog):
         await message.add_reaction(discord.PartialEmoji(name="down", id=711993054613078036))
         await message.add_reaction(discord.PartialEmoji(name="add", id=711993256585461791))
         await message.add_reaction(discord.PartialEmoji(name="remove", id=711993000976449557))
+        await message.add_reaction(":white_check_mark:")
 
         index = 0
 
@@ -290,6 +291,7 @@ class server(commands.Cog):
                 break
 
             if isinstance(data, discord.Message):
+                await data.delete()
                 if rolevals[index].mention == "*Not set*":
                     role = data.role_mentions[0]
                     rolelist[rolekeys[index]] = role
@@ -325,6 +327,9 @@ class server(commands.Cog):
                         rolelist[rolekeys[index]] = DummyRole()
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
+                elif reaction == "white_check_mark":
+                    await message.edit(content="*Session ended*")
+                    break
 
                 index %= len(rolelist)
 
