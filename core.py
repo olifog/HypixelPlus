@@ -53,7 +53,7 @@ class HypixelPlus(commands.AutoShardedBot):
             "MVP": discord.Colour(5636095),
             "MVP+": discord.Colour(5636095),
             "MVP++": discord.Colour(16755200),
-            "Hypixel Helper": discord.Colour(170),
+            "Hypixel Helper": discord.Colour(5592575),
             "Youtuber": discord.Colour(11141120),
             "Hypixel Moderator": discord.Colour(43520),
             "Hypixel Admin": discord.Colour(11141120)
