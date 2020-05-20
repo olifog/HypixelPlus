@@ -177,7 +177,7 @@ class server(commands.Cog):
 
         await self.bot.handle_error(ctx, error)
 
-    async def render_roles(self, roles, index):
+    async def render_roles(self, roles, index, hypranks):
         ret = ""
 
         x = 0
@@ -186,9 +186,9 @@ class server(commands.Cog):
 
             if x == 0:
                 ret += "**Hypixel ranks:**\n"
-            elif x == 5:
+            elif x == hypranks:
                 ret += "\n**General roles:**\n"
-            elif x == 7:
+            elif x == hypranks + 2:
                 ret += "\n**Guild ranks:**\n"
 
             if x == index:
@@ -208,10 +208,10 @@ class server(commands.Cog):
     @setup.command(brief="Role config", usage="./data/role_config_help.png")
     @commands.guild_only()
     @checks.serverowner_or_permissions(manage_server=True)
-    async def roles(self, ctx):
+    async def roles(self, ctx, extras: typing.Optional[str]):
         """
         This command sets up what roles Hypixel+ will apply to users in your server.
-        Usage: `h+setup roles`
+        Usage: `h+setup roles [include extra roles? put anything here for yes, ignore for no]`
 
         It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and Verified/Unverified roles.
 
@@ -227,9 +227,17 @@ class server(commands.Cog):
         if serv is None:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
+        hypranks = 0
+
         rolelist = {}
         for rank in serv['hypixelRoles']:
+            hypranks += 1
             rolelist[rank] = await self.get_optional_role(serv['hypixelRoles'][rank], ctx.guild)
+
+        if extras:
+            for rank in serv['extraRoles']:
+                hypranks += 1
+                rolelist[rank] = await self.get_optional_role(serv['extraRoles'][rank], ctx.guild)
 
         rolelist["Verified"] = await self.get_optional_role(serv['verifiedRole'], ctx.guild)
         rolelist["Unverified"] = await self.get_optional_role(serv['unverifiedRole'], ctx.guild)
@@ -266,7 +274,8 @@ class server(commands.Cog):
 
         while True:
             desc = await self.render_roles(rolelist,
-                                           index) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
+                                           index,
+                                           hypranks) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
             embed = discord.Embed(colour=self.bot.theme, description=desc)
             embed.set_author(name="Role config",
                              icon_url="https://upload-icon.s3.us-east-2.amazonaws.com/uploads/icons/png/2674342741552644384-512.png")
