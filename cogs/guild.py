@@ -41,7 +41,7 @@ class guild(commands.Cog):
         if isinstance(timeframe, int):
             d = datetime.now(tz=self.bot.est) - timedelta(days=timeframe)
             timeframe = d.strftime("%Y-%m-%d")
-            dispday = day.strftime("%m/%d/%Y")
+            dispday = d.strftime("%m/%d/%Y")
 
         topdata = guild_data['top'][timeframe]
 
