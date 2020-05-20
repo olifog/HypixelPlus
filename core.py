@@ -150,7 +150,8 @@ class HypixelPlus(commands.AutoShardedBot):
         if self.logchannel is None:
             self.logchannel = await self.fetch_channel(710829103003205764)
 
-        e = discord.Embed(color=discord.Color.darker_grey(), description=str(log['log']), timestamp=log['timestamp'])
+        e = discord.Embed(color=discord.Color.darker_grey(), description=str(log['log'])[:1800],
+                          timestamp=log['timestamp'])
         await self.logchannel.send(embed=e)
         await self.db.logs.delete_many({'_id': log['_id']})
 
