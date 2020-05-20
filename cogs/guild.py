@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime, timedelta
 
 import discord
@@ -13,7 +14,7 @@ class guild(commands.Cog):
     @commands.command(brief="Guild top Exp")
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def top(self, ctx, timeframe=0):
+    async def top(self, ctx, timeframe: typing.Optional[str] = "0"):
         """
         Displays the guild's top Exp earners. You can view top exp from any day in the past week, or the entire week.
         Usage: `h+top [optional timeframe]`
@@ -39,7 +40,7 @@ class guild(commands.Cog):
         guild_data = await self.bot.db.guilds.find_one({"guildid": gid})
 
         try:
-            d = datetime.now(tz=self.bot.est) - timedelta(days=timeframe)
+            d = datetime.now(tz=self.bot.est) - timedelta(days=int(timeframe))
             timeframe = d.strftime("%Y-%m-%d")
             dispday = d.strftime("%m/%d/%Y")
         except Exception:
