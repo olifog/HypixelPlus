@@ -2,6 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
+
 from extras import checks
 
 
@@ -113,10 +114,6 @@ class server(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def server_verified(self, discordid):
-        async for serv in self.bot.db.servers.find({"discordid": discordid}):
-            return serv
-
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
@@ -167,7 +164,7 @@ class server(commands.Cog):
 
     @names.error
     async def names_error(self, ctx, error):
-        serv = await self.server_verified(ctx.guild.id)
+        serv = await self.bot.server_verified(ctx.guild.id)
 
         if serv is not None:
             newerror = getattr(error, 'original', error)
@@ -226,7 +223,7 @@ class server(commands.Cog):
 
         For example, if you already have an 'MVP+' role, and you don't want the bot to create a new one, do the following:
         """
-        serv = await self.server_verified(ctx.guild.id)
+        serv = await self.bot.server_verified(ctx.guild.id)
         if serv is None:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
@@ -246,7 +243,10 @@ class server(commands.Cog):
             update_roles = {}
 
             for rank in new_ranks:
-                discid = serv['guildRoles'].get(rank['name'], 0)
+                try:
+                    discid = serv['guildRoles'].get(rank['name'], 0)
+                except KeyError:
+                    discid = 0
                 update_roles[rank['name']] = discid
                 rolelist[rank['name']] = await self.get_optional_role(discid, ctx.guild)
 
