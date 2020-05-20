@@ -332,6 +332,7 @@ class server(commands.Cog):
                     if rolevals[index].mention == "*Not set*":
                         await ctx.send("There's no role synced there to remove!", delete_after=5)
                     else:
+                        await rolelist[rolekeys[index]].delete()
                         rolelist[rolekeys[index]] = DummyRole()
                         rolekeys = list(rolelist.keys())
                         rolevals = list(rolelist.values())
