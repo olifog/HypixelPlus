@@ -101,6 +101,8 @@ class Player(object):
 
             rankdata.append(rank)
 
+        return rankdata
+
         for apirank, formatrank in transform.items():
             if apirank in rankdata:
                 playerRank = formatrank
