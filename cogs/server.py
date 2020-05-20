@@ -364,7 +364,7 @@ class server(commands.Cog):
         if extras:
             extraroles = {}
             for rank in serv['extraRoles']:
-                extraroles[rank] = roleslist[rank].id
+                extraroles[rank] = rolelist[rank].id
             update['extraRoles'] = extraroles
 
         if id is not None:
