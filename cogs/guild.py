@@ -58,7 +58,7 @@ class guild(commands.Cog):
 
             discordid = player.get('discord')
             if discordid:
-                desc += " (" + ctx.guild.get_member(discordid).mention + ")"
+                desc += " (" + await ctx.guild.fetch_member(discordid).mention + ")"
 
             desc += "* - **"
             desc += str(round(player['xp']))
