@@ -51,7 +51,7 @@ class guild(commands.Cog):
         x = 0
         for player in topdata:
             x += 1
-            desc += str(x + 1) + ") "
+            desc += str(x) + ") "
             desc += "*" + player['player']
 
             discordid = player.get('discord')
