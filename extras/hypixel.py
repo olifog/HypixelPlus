@@ -1,5 +1,3 @@
-
-import aiohttp
 from extras import leveling
 
 
@@ -29,6 +27,8 @@ class HypixelAPI(object):
             requestEnd += '&{}={}'.format(name, value)
 
         url = HYPIXEL_API_URL + '{}?key={}{}'.format(typeOfRequest, self.api_key, requestEnd)
+
+        print(url)
 
         response = await self.handler.getJSON(url)
 
@@ -85,8 +85,9 @@ class Player(object):
                 if self.JSON[Location] == 'NONE' or self.JSON[Location] is None:
                     continue
                 dirtyRank = self.JSON[Location].title()
-                dirtyRank = dirtyRank.replace("_", " ").replace("Mvp", "MVP").replace("Vip", "VIP").replace("Superstar", "MVP++")
-                playerRank = dirtyRank.replace(" Plus", "+").replace("Youtuber", "YouTube")
+                dirtyRank = dirtyRank.replace("_", " ").replace("Mvp", "MVP").replace("Vip", "VIP").replace("Superstar",
+                                                                                                            "MVP++")
+                playerRank = dirtyRank.replace(" Plus", "+")
 
         if playerRank == "None":
             playerRank = None
