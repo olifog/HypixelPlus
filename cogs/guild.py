@@ -52,7 +52,6 @@ class guild(commands.Cog):
 
         x = 0
         for player in topdata:
-            await ctx.send(player)
             x += 1
             desc += str(x) + ") "
             desc += "*" + player['player']
@@ -64,6 +63,10 @@ class guild(commands.Cog):
             desc += "* - **"
             desc += str(round(player['xp']))
             desc += "** Guild EXP\n"
+
+        await ctx.send(timeframe)
+        await ctx.send(titles)
+        await ctx.send(titles.get(timeframe, 'couldn\'t match'))
 
         embed = discord.Embed(timestamp=datetime.now(tz=self.bot.est), description=desc)
         embed.set_author(name=titles.get(timeframe, "Guild top EXP for " + dispday),
