@@ -94,7 +94,7 @@ class Player(object):
         }
 
         for location in possibleRankLocations:
-            rank = self.JSON.get(location).upper()
+            rank = str(self.JSON.get(location)).upper()
 
             if rank is None or rank is 'NONE':
                 continue
