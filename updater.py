@@ -94,8 +94,13 @@ class Updater:
                 update['ranks'].insert(len(update['ranks']) - 1,
                                        {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
 
-            todayExp = []
-            today = datetime.now(tz=self.est).strftime("%Y-%m-%d")
+            top = {'week': [], 'average': []}
+            days = []
+            for x in range(7):
+                d = (datetime.now(tz=self.est) - timedelta(days=x)).strftime("%Y-%m-%d")
+                days.append(d)
+                top[d] = []
+
             memberlist = []
 
             update['members'] = []
@@ -128,19 +133,20 @@ class Updater:
                         resp = await self.handler.getJSON(url)
                         data['name'] = resp['data']['player']['username']
 
-                try:
-                    todayExp.append([data['name'], member['expHistory'][today]])
-                except KeyError:
-                    todayExp.append([data['name'], 0])
-
                 newExpHistory = member['expHistory']
                 newExpHistory['week'] = sum(newExpHistory.values())
+                newExpHistory['average'] = newExpHistory['week'] / 7
+
+                for timeframe, xp in newExpHistory.values():
+                    top[timeframe].append({'player': data['name'], 'xp': xp})
 
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
 
-            topTodayExp = sorted(todayExp, key=itemgetter(1), reverse=True)[:10]
-            update['top'] = topTodayExp
+            for timeframe in top:
+                top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:15]
+
+            update['top'] = top
 
             async for player in self.db.players.find({'guildid': guild.JSON['_id']}):
                 if player['uuid'] not in memberlist:
