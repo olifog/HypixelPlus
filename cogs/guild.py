@@ -56,10 +56,10 @@ class guild(commands.Cog):
 
             discordid = player.get('discord')
             if discordid:
-                desc += " (" + ctx.guild.get_member(discordid).mention + ")*"
+                desc += " (" + ctx.guild.get_member(discordid).mention + ")"
 
-            desc += " - **"
-            desc += str(player['xp'])
+            desc += "* - **"
+            desc += str(round(player['xp']))
             desc += "** Guild EXP\n"
 
         embed = discord.Embed(timestamp=datetime.now(tz=self.bot.est), description=desc)
