@@ -40,7 +40,7 @@ class dev(commands.Cog):
 
     @commands.command()
     @checks.is_owner()
-    async def getrank(self, name):
+    async def getrank(self, ctx, name):
         player = await self.bot.hypixelapi.getPlayer(name=name)
         await ctx.send(player.getRank())
 

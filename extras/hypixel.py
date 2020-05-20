@@ -28,8 +28,6 @@ class HypixelAPI(object):
 
         url = HYPIXEL_API_URL + '{}?key={}{}'.format(typeOfRequest, self.api_key, requestEnd)
 
-        print(url)
-
         response = await self.handler.getJSON(url)
 
         if response['success'] is False:
