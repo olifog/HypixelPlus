@@ -27,6 +27,8 @@ class guild(commands.Cog):
         - days ago, a number from `1`-`6` - displays the GEXP leaderboard for the specified day
         """
 
+        await ctx.send(timeframe)
+
         serv = await self.bot.server_verified(ctx.guild.id)
         gid = serv.get('guildid')
         if serv is None or gid is None:
