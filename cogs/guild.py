@@ -16,7 +16,7 @@ class guild(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def top(self, ctx, timeframe: typing.Optional[str] = "0"):
         """
-        Displays the guild's top Exp earners. You can view top exp from any day in the past week, or the entire week.
+        Displays the guild's top Exp earners. You can view top exp from any day in the past week, the entire week, or average per day.
         Usage: `h+top [optional timeframe]`
 
         Running the command without any timeframe will show the current top GEXP leaderboard.
