@@ -355,11 +355,17 @@ class server(commands.Cog):
         update = {}
         update['verifiedRole'] = rolelist['Verified'].id
         update['unverifiedRole'] = rolelist['Unverified'].id
+
         hyproles = {}
         for rank in serv['hypixelRoles']:
             hyproles[rank] = rolelist[rank].id
-
         update['hypixelRoles'] = hyproles
+
+        if extras:
+            extraroles = {}
+            for rank in serv['extraRoles']:
+                extraroles[rank] = roleslist[rank].id
+            update['extraRoles'] = extraroles
 
         if id is not None:
             for rank in update_roles:
