@@ -137,8 +137,15 @@ class Updater:
                 newExpHistory['week'] = sum(newExpHistory.values())
                 newExpHistory['average'] = newExpHistory['week'] / 7
 
+                p = {'player': data['name'], 'xp': 0}
+                try:
+                    p['discord'] = dbplayer['discordid']
+                except KeyError:
+                    pass
+
                 for timeframe, xp in newExpHistory.items():
-                    top[timeframe].append({'player': data['name'], 'xp': xp})
+                    p['xp'] = xp
+                    top[timeframe].append(p)
 
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
