@@ -27,8 +27,6 @@ class guild(commands.Cog):
         - days ago, a number from `1`-`6` - displays the GEXP leaderboard for the specified day
         """
 
-        await ctx.send(timeframe)
-
         serv = await self.bot.server_verified(ctx.guild.id)
         gid = serv.get('guildid')
         if serv is None or gid is None:
@@ -54,6 +52,7 @@ class guild(commands.Cog):
 
         x = 0
         for player in topdata:
+            await ctx.send(player)
             x += 1
             desc += str(x) + ") "
             desc += "*" + player['player']
