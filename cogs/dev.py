@@ -38,6 +38,12 @@ class dev(commands.Cog):
         await ctx.send(f'Each player is updated every {players / 1.5} seconds')
         await ctx.send(f'Each guild is updated every {guilds * 10} seconds')
 
+    @commands.command()
+    @checks.is_owner()
+    async def getrank(self, name):
+        player = await self.bot.hypixelapi.getPlayer(name=name)
+        await ctx.send(player.getRank())
+
 
 def setup(bot):
     bot.add_cog(dev(bot))
