@@ -63,6 +63,7 @@ class Updater:
 
         try:
             guild = await self.hypixelapi.getGuild(id=oldest['guildid'])
+
             update = {
                 "guildid": guild.JSON['_id'],
                 "name": guild.JSON['name'],
@@ -72,10 +73,14 @@ class Updater:
                 "tag": guild.JSON['tag'],
                 "description": guild.JSON['description'],
                 "tagColor": guild.JSON['tagColor'],
-                "guildExpByGameType": guild.JSON['guildExpByGameType'],
                 "preferredGames": guild.JSON['preferredGames'],
                 "updating": False
             }
+
+            try:
+                update['guildExpByGameType'] = guild.JSON['guildExpByGameType']
+            except KeyError:
+                pass
 
             sorted_ranks = sorted(guild.JSON['ranks'], key=itemgetter('priority'))
             update['ranks'] = [{'name': 'Guild Master', 'tag': 'GM', 'default': False}]
