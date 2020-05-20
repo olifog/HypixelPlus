@@ -140,7 +140,7 @@ class Updater:
                 p = {'player': data['name'], 'xp': 0}
                 try:
                     p['discord'] = dbplayer['discordid']
-                except KeyError:
+                except TypeError:
                     pass
 
                 for timeframe, xp in newExpHistory.items():
