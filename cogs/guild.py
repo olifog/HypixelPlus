@@ -38,11 +38,12 @@ class guild(commands.Cog):
 
         guild_data = await self.bot.db.guilds.find_one({"guildid": gid})
 
-        dispday = "ERROR"
-        if isinstance(timeframe, int):
+        try:
             d = datetime.now(tz=self.bot.est) - timedelta(days=timeframe)
             timeframe = d.strftime("%Y-%m-%d")
             dispday = d.strftime("%m/%d/%Y")
+        except Exception:
+            dispday = None
 
         topdata = guild_data['top'][timeframe]
 
