@@ -11,10 +11,6 @@ class guild(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def getmembercheck(self, id, guild):
-        member = guild.get_member(id)
-        return member if member is not None else await guild.fetch_member(id)
-
     @commands.command(brief="Guild top Exp")
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -61,9 +57,12 @@ class guild(commands.Cog):
             desc += "*" + player['player']
 
             discordid = player.get('discord')
-            if discordid:
-                member = await self.getmembercheck(discordid, ctx.guild)
-                desc += " (" + member.mention + ")"
+            try:
+                if discordid:
+                    member = guild.get_member(discordid)
+                    desc += " (" + member.mention + ")"
+            except AttributeError:
+                pass
 
             desc += "* - **"
             desc += str(round(player['xp']))
