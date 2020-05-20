@@ -62,7 +62,6 @@ class guild(commands.Cog):
                     member = ctx.guild.get_member(int(discordid))
                     desc += " (" + member.mention + ")"
             except AttributeError:
-                await self.bot.log(discordid)
                 pass
 
             desc += "* - **"
@@ -71,7 +70,7 @@ class guild(commands.Cog):
 
         embed = discord.Embed(timestamp=datetime.now(tz=self.bot.est), description=desc)
         embed.set_author(name=titles.get(timeframe, "Guild top EXP for " + dispday),
-                         icon_url="https://cdns.iconmonstr.com/wp-content/assets/preview/2013/240/iconmonstr-trophy-6.png")
+                         icon_url="https://i.imgur.com/GMm53sH.png")
         await ctx.send(embed=embed)
 
 
