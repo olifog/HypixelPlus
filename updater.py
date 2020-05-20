@@ -152,9 +152,10 @@ class Updater:
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
 
-            await self.log(top)
 
             for timeframe in top:
+                await self.log(timeframe)
+                await self.log(top[timeframe][0])
                 top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:15]
 
             update['top'] = top
