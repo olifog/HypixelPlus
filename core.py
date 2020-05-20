@@ -100,7 +100,7 @@ class HypixelPlus(commands.AutoShardedBot):
             self.servers[server['discordid']] = LinkedServer(self, server['discordid'])
 
     async def server_verified(self, discordid):
-        async for serv in self.bot.db.servers.find({"discordid": discordid}):
+        async for serv in self.db.servers.find({"discordid": discordid}):
             return serv
 
     async def on_ready(self):
