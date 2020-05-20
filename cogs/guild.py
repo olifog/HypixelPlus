@@ -59,9 +59,10 @@ class guild(commands.Cog):
             discordid = player.get('discord')
             try:
                 if discordid:
-                    member = guild.get_member(discordid)
+                    member = guild.get_member(int(discordid))
                     desc += " (" + member.mention + ")"
             except AttributeError:
+                await self.bot.log(discordid)
                 pass
 
             desc += "* - **"
