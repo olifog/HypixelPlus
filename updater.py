@@ -137,7 +137,7 @@ class Updater:
                 newExpHistory['week'] = sum(newExpHistory.values())
                 newExpHistory['average'] = newExpHistory['week'] / 7
 
-                for timeframe, xp in newExpHistory.values():
+                for timeframe, xp in newExpHistory.items():
                     top[timeframe].append({'player': data['name'], 'xp': xp})
 
                 data['expHistory'] = newExpHistory
