@@ -101,6 +101,8 @@ class Updater:
                 days.append(d)
                 top[d] = []
 
+            await self.log(top)
+
             memberlist = []
 
             update['members'] = []
@@ -149,6 +151,8 @@ class Updater:
 
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
+
+            await self.log(top)
 
             for timeframe in top:
                 top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:15]
