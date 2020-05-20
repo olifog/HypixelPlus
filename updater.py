@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import time
 import traceback
@@ -101,8 +102,6 @@ class Updater:
                 days.append(d)
                 top[d] = []
 
-            await self.log(top)
-
             memberlist = []
 
             update['members'] = []
@@ -147,15 +146,13 @@ class Updater:
 
                 for timeframe, xp in newExpHistory.items():
                     p['xp'] = xp
-                    top[timeframe].append(p)
+                    top[timeframe].append(copy.copy(p))
 
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
 
 
             for timeframe in top:
-                await self.log(timeframe)
-                await self.log(top[timeframe][0])
                 top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:15]
 
             update['top'] = top
