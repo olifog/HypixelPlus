@@ -39,7 +39,7 @@ class guild(commands.Cog):
 
         dispday = "ERROR"
         if isinstance(timeframe, int):
-            d = datetime.now(tz=self.est) - timedelta(days=timeframe)
+            d = datetime.now(tz=self.bot.est) - timedelta(days=timeframe)
             timeframe = d.strftime("%Y-%m-%d")
             dispday = day.strftime("%m/%d/%Y")
 
@@ -61,7 +61,7 @@ class guild(commands.Cog):
             desc += str(player['xp'])
             desc += "** Guild EXP\n"
 
-        embed = discord.Embed(timestamp=datetime.now(tz=self.est), description=desc)
+        embed = discord.Embed(timestamp=datetime.now(tz=self.bot.est), description=desc)
         embed.set_author(name=titles.get(timeframe, "Guild top EXP for " + dispday),
                          icon_url="https://cdns.iconmonstr.com/wp-content/assets/preview/2013/240/iconmonstr-trophy-6.png")
         await ctx.send(embed=embed)

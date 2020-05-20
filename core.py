@@ -9,6 +9,7 @@ from urllib import parse
 import discord
 import motor.motor_asyncio
 from discord.ext import commands, tasks
+from pytz import timezone
 
 from cogs.server import LinkedServer
 from extras.hypixel import HypixelAPI, PlayerNotFoundException
@@ -40,6 +41,7 @@ class HypixelPlus(commands.AutoShardedBot):
         self.logger = logging.getLogger(__name__)
         self.servers = {}
         self.logchannel = None
+        self.est = timezone("US/Eastern")
 
         self.owner = 404244659024429056
         self.uptime = datetime.now()
