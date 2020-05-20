@@ -78,17 +78,32 @@ class Player(object):
         playerRank = None
         possibleRankLocations = ['packageRank', 'newPackageRank', 'monthlyPackageRank', 'rank']
 
-        for Location in possibleRankLocations:
-            if Location in self.JSON:
-                if self.JSON[Location] == 'NONE' or self.JSON[Location] is None:
-                    continue
-                dirtyRank = self.JSON[Location].title()
-                dirtyRank = dirtyRank.replace("_", " ").replace("Mvp", "MVP").replace("Vip", "VIP").replace("Superstar",
-                                                                                                            "MVP++")
-                playerRank = dirtyRank.replace(" Plus", "+")
+        rankdata = []
 
-        if playerRank == "None":
-            playerRank = None
+        transform = {
+            'Normal': '',
+            'Vip': 'VIP',
+            'Vip_Plus': 'VIP+',
+            'Mvp': 'MVP',
+            'Mvp_Plus': 'MVP+',
+            'Superstar': 'MVP++',
+            'Helper': 'Hypixel Helper',
+            'Youtuber': 'Youtuber',
+            'Moderator': 'Hypixel Moderator',
+            'Admin': 'Hypixel Admin'
+        }
+
+        for location in possibleRankLocations:
+            rank = self.JSON.get(location)
+
+            if rank is None or rank.upper() is 'NONE':
+                continue
+
+            rankdata.append(rank)
+
+        for apirank, formatrank in transform.items():
+            if apirank in rankdata:
+                playerRank = formatrank
 
         return playerRank
 

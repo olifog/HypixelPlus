@@ -42,16 +42,7 @@ class dev(commands.Cog):
     @checks.is_owner()
     async def getrank(self, ctx, name):
         player = await self.bot.hypixelapi.getPlayer(name=name)
-
-        playerRank = None
-        possibleRankLocations = ['packageRank', 'newPackageRank', 'monthlyPackageRank', 'rank']
-
-        for Location in possibleRankLocations:
-            if Location in player.JSON:
-                if player.JSON[Location] == 'NONE' or player.JSON[Location] is None:
-                    continue
-                dirtyRank = player.JSON[Location].title()
-                await ctx.send(Location + "- " + dirtyRank)
+        await ctx.send(player.getRank())
 
 
 def setup(bot):
