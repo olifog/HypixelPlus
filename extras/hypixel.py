@@ -81,27 +81,25 @@ class Player(object):
         rankdata = []
 
         transform = {
-            'Normal': '',
-            'Vip': 'VIP',
-            'Vip_Plus': 'VIP+',
-            'Mvp': 'MVP',
-            'Mvp_Plus': 'MVP+',
-            'Superstar': 'MVP++',
-            'Helper': 'Hypixel Helper',
-            'Youtuber': 'Youtuber',
-            'Moderator': 'Hypixel Moderator',
-            'Admin': 'Hypixel Admin'
+            'NORMAL': None,
+            'VIP': 'VIP',
+            'VIP_PLUS': 'VIP+',
+            'MVP': 'MVP',
+            'MVP_PLUS': 'MVP+',
+            'SUPERSTAR': 'MVP++',
+            'HELPER': 'Hypixel Helper',
+            'YOUTUBER': 'Youtuber',
+            'MODERATOR': 'Hypixel Moderator',
+            'ADMIN': 'Hypixel Admin'
         }
 
         for location in possibleRankLocations:
-            rank = self.JSON.get(location)
+            rank = self.JSON.get(location).upper()
 
-            if rank is None or rank.upper() is 'NONE':
+            if rank is None or rank is 'NONE':
                 continue
 
             rankdata.append(rank)
-
-        return rankdata
 
         for apirank, formatrank in transform.items():
             if apirank in rankdata:
