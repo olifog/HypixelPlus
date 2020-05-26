@@ -56,8 +56,11 @@ class misc(commands.Cog):
 
     @commands.command()
     async def checkavailable(self, ctx, name):
-        resp = await self.bot.hypixelapi.getGuild(name=name)
-        await ctx.send(str(resp.JSON)[:800])
+        guild = await self.bot.hypixelapi.getGuild(name=name)
+        if guild.JSON is None:
+            return await ctx.send("Guild name available!")
+
+        await ctx.send("Sorry, guild name is taken")
 
 
 def setup(bot):
