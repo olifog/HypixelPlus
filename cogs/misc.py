@@ -3,6 +3,7 @@ from datetime import datetime
 import discord
 import humanize
 from discord.ext import commands
+from extra.hypixel import HypixelAPIError
 
 
 class misc(commands.Cog):
@@ -53,6 +54,14 @@ class misc(commands.Cog):
         Usage: `h+support`
         """
         await ctx.send('give us money please (except not yet we haven\'t set it up yet)')
+
+    @commands.command()
+    async def checkavailable(self, ctx, name):
+        try:
+            await self.bot.hypixelapi.getGuild(name=name)
+            await ctx.send("Sorry, guild name already taken")
+        except HypixelAPIError:
+            await ctx.send("Name available!")
 
 
 def setup(bot):
