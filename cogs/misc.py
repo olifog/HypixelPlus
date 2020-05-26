@@ -54,8 +54,11 @@ class misc(commands.Cog):
         """
         await ctx.send('give us money please (except not yet we haven\'t set it up yet)')
 
-    @commands.command()
-    async def checkavailable(self, ctx, name):
+    @commands.command(brief="Temporary guild check command")
+    async def check(self, ctx, name):
+        """
+        Checks whether the specified guild name is available
+        """
         guild = await self.bot.hypixelapi.getGuild(name=name)
         if guild.JSON is None:
             return await ctx.send("Guild name available!")
