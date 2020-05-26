@@ -3,7 +3,8 @@ from datetime import datetime
 import discord
 import humanize
 from discord.ext import commands
-from extra.hypixel import HypixelAPIError
+
+from extras.hypixel import HypixelAPIError
 
 
 class misc(commands.Cog):
