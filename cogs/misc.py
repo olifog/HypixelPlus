@@ -4,8 +4,6 @@ import discord
 import humanize
 from discord.ext import commands
 
-from extras.hypixel import HypixelAPIError
-
 
 class misc(commands.Cog):
     """Miscellaneous commands"""
@@ -58,11 +56,8 @@ class misc(commands.Cog):
 
     @commands.command()
     async def checkavailable(self, ctx, name):
-        try:
-            await self.bot.hypixelapi.getGuild(name=name)
-            await ctx.send("Sorry, guild name already taken")
-        except HypixelAPIError:
-            await ctx.send("Name available!")
+        resp = await self.bot.hypixelapi.getGuild(name=name)
+        await ctx.send(str(resp)[:800])
 
 
 def setup(bot):
