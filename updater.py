@@ -151,7 +151,10 @@ class Updater:
 
                 for timeframe, xp in newExpHistory.items():
                     p['xp'] = xp
-                    top[timeframe].append(copy.copy(p))
+                    try:
+                        top[timeframe].append(copy.copy(p))
+                    except KeyError:
+                        pass
 
                 data['expHistory'] = newExpHistory
                 update['members'].append(data)
