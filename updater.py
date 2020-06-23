@@ -61,44 +61,34 @@ class Updater:
 
         await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': {'updating': True}})
 
-        try:
-            guild = await self.hypixelapi.getGuild(id=oldest['guildid'])
+        update = {
+            "discordid": oldest['discordid'],
+            "updating": False
+        }
 
-            update = {
-                "guildid": guild.JSON['_id'],
-                "name": guild.JSON['name'],
-                "timeCreated": datetime.fromtimestamp(float(guild.JSON['created']) / 1000),
-                "exp": guild.JSON['exp'],
-                "level": await self.guild_exp_to_level(int(guild.JSON['exp'])),
-                "tag": guild.JSON['tag'],
-                "description": guild.JSON['description'],
-                "tagColor": guild.JSON['tagColor'],
-                "preferredGames": guild.JSON['preferredGames'],
-                "updating": False
-            }
+        optionals = ["nameFormat", "roles"]
 
-            try:
-                update['guildExpByGameType'] = guild.JSON['guildExpByGameType']
-            except KeyError:
-                pass
+        for opt in optionals:
+            ret = oldest.get(opt)
+            if ret is not None:
+                update[opt] = ret
+
+        gid = oldest.get("guildid")
+        if gid:
+            guild = await self.hypixelapi.getGuild(id=gid)
+            update['guildid'] = gid
+            update['guildName'] = guild.JSON['name']
 
             sorted_ranks = sorted(guild.JSON['ranks'], key=itemgetter('priority'))
-            update['ranks'] = [{'name': 'Guild Master', 'tag': 'GM', 'default': False}]
+            update['guildRanks'] = [{'name': 'Guild Master', 'tag': 'GM', 'default': False}]
 
             tags = {'Guild Master': 'GM'}
 
             for x in range(len(sorted_ranks)):
                 rank = sorted_ranks[x]
                 tags[rank['name']] = rank['tag']
-
-                try:
-                    if oldest['ranks'][x] != rank:
-                        raise KeyError
-                except KeyError:
-                    pass
-
-                update['ranks'].insert(len(update['ranks']) - 1,
-                                       {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
+                update['guildRanks'].insert(len(update['guildRanks']) - 1,
+                                            {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
 
             top = {'week': [], 'average': []}
             days = []
@@ -111,22 +101,29 @@ class Updater:
 
             update['members'] = []
             for member in guild.JSON['members']:
-                data = {'uuid': member['uuid'], 'joined': datetime.fromtimestamp(float(member['joined']) / 1000)}
                 memberlist.append(member['uuid'])
-
                 dbplayer = await self.db.players.find_one({'uuid': member['uuid']})
 
-                try:
-                    data['name'] = dbplayer['displayname']
-                    pupdate = {'guildid': guild.JSON['_id'], 'guildRank': member['rank'], 'guildTag': tags[member['rank']]}
-                    await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
-                except (KeyError, TypeError):
+                newExpHistory = member['expHistory']
+                newExpHistory['week'] = sum(newExpHistory.values())
+                newExpHistory['average'] = newExpHistory['week'] / 7
+                p = {'xp': 0}
+
+                if dbplayer is not None:
+                    p['player'] = dbplayer['displayname']
+                    p['discord'] = dbplayer['discordid']
+                    pupdate = {'guildid': guild.JSON['_id'], 'guildRank': member['rank'],
+                               'guildRankTag': tags[member['rank']], 'guildExp': newExpHistory}
+                    result = await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
+                    if result.modified_count == 1:
+                        await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': {'urgentUpdate': True}})
+                else:
                     get_from_api = True
                     try:
                         for old_mem in oldest['members']:
                             if old_mem['uuid'] == member['uuid']:
                                 try:
-                                    data['name'] = old_mem['name']
+                                    p['player'] = old_mem['name']
                                     get_from_api = False
                                 except KeyError:
                                     pass
@@ -137,17 +134,7 @@ class Updater:
                     if get_from_api:
                         url = 'https://playerdb.co/api/player/minecraft/' + member['uuid']
                         resp = await self.handler.getJSON(url)
-                        data['name'] = resp['data']['player']['username']
-
-                newExpHistory = member['expHistory']
-                newExpHistory['week'] = sum(newExpHistory.values())
-                newExpHistory['average'] = newExpHistory['week'] / 7
-
-                p = {'player': data['name'], 'xp': 0}
-                try:
-                    p['discord'] = dbplayer['discordid']
-                except TypeError:
-                    pass
+                        p['player'] = resp['data']['player']['username']
 
                 for timeframe, xp in newExpHistory.items():
                     p['xp'] = xp
@@ -156,27 +143,22 @@ class Updater:
                     except KeyError:
                         pass
 
-                data['expHistory'] = newExpHistory
-                update['members'].append(data)
+                update['members'].append({'name': p['player'], 'uuid': member['uuid']})
 
 
             for timeframe in top:
-                top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:15]
+                top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:10]
 
             update['top'] = top
 
             async for player in self.db.players.find({'guildid': guild.JSON['_id']}):
                 if player['uuid'] not in memberlist:
-                    unset = {'guildid': '', 'guildRank': '', 'guildRankTag': ''}
+                    unset = {'guildid': '', 'guildRank': '', 'guildRankTag': '', 'guildExp': ''}
                     await self.db.players.update_one({'_id': player['_id']}, {'$unset': unset})
 
             update["lastModifiedData"] = datetime.utcnow()
 
             await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': update})
-
-        except Exception as e:
-            await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': {'updating': False}})
-            raise e
 
     async def update_player(self):
         oldest = None
@@ -194,26 +176,22 @@ class Updater:
             update = {
                 "level": player.getLevel(),
                 "hypixelRank": player.getRank(),
-                "updating": False
+                "displayname": player.getName()
             }
 
-            needed_data = ['displayname', 'karma', 'firstLogin', 'lastLogin']
-            for d in needed_data:
-                try:
-                    update[d] = player.JSON[d]
-                except KeyError:
-                    pass
+            new = False
 
-            try:
-                update['online'] = player.JSON['lastLogout'] < player.JSON['lastLogin']
-            except KeyError:
-                pass
+            for key, data in update.items():
+                if oldest[key] != data:
+                    new = True
+                    break
 
-            try:
-                update['discordName'] = player.JSON['socialMedia']['links']['DISCORD']
-            except KeyError:
-                pass
+            update['urgentUpdate'] = True
 
+            if not new:
+                update = {}
+
+            update['updating'] = False
             update['lastModifiedData'] = datetime.utcnow()
 
             await self.db.players.update_one({'_id': oldest['_id']}, {'$set': update})
