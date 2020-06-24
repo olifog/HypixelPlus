@@ -102,12 +102,11 @@ class HypixelPlus(commands.AutoShardedBot):
         await self.handle_error(ctx, error)
 
     async def setup_servers(self):
-        async for server in self.db.servers.find():
-            self.servers[server['discordid']] = LinkedServer(self, server['discordid'])
+        async for server in self.db.guilds.find():
+            self.servers[server['discordid']] = LinkedServer(self, server)
 
     async def server_verified(self, discordid):
-        async for serv in self.db.servers.find({"discordid": discordid}):
-            return serv
+        return self.servers.get(discordid)
 
     async def on_ready(self):
         self.remove_command('help')
@@ -121,7 +120,7 @@ class HypixelPlus(commands.AutoShardedBot):
         await self.log("Restarted")
         self.logging.start()
 
-        watch = discord.Activity(type=discord.ActivityType.watching, name="h+help | hyp.plus️")
+        watch = discord.Activity(type=discord.ActivityType.watching, name="h+help | hyp.plus")
         await self.change_presence(status=discord.Status.idle, activity=watch)
 
     async def load_mods(self):

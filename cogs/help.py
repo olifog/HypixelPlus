@@ -1,3 +1,5 @@
+import typing
+
 import discord
 from discord.ext import commands
 
@@ -27,8 +29,8 @@ class help(commands.Cog):
             return embed, None
 
     @commands.command()
-    async def help(self, ctx, *, command):
-        if len(command) > 0:
+    async def help(self, ctx, *, command: typing.Optional[str]):
+        if command is not None:
             embed, pic = await self.get_command_help_embed(command)
             return await ctx.send(embed=embed, file=pic)
 

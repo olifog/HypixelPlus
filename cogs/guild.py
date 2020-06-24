@@ -27,9 +27,12 @@ class guild(commands.Cog):
         - days ago, a number from `1`-`6` - displays the GEXP leaderboard for the specified day
         """
 
-        serv = await self.bot.server_verified(ctx.guild.id)
-        gid = serv.get('guildid')
-        if serv is None or gid is None:
+        try:
+            serv = await self.bot.server_verified(ctx.guild.id)
+            gid = serv.serverdata.get('guildid')
+            if gid is None:
+                raise AttributeError
+        except AttributeError:
             return await ctx.send("Please sync and setup your guild first by running `h+setup`!")
 
         titles = {

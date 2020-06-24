@@ -7,12 +7,12 @@ from discord.ext import commands
 from extras import checks
 
 
-class LinkedServer(object):  # Object that references a linked Discord server. Basically handles updating the next user
-    def __init__(self, bot, discordid):
+class LinkedServer:  # Object that references a linked Discord server. Basically handles updating the next user
+    def __init__(self, bot, object):
         self.bot = bot
-        self.discordid = discordid
+        self.discordid = object['discordid']
         self.server = self.bot.get_guild(self.discordid)
-        self.serverdata = None
+        self.serverdata = object
         self.queue = []
         self.empty = False
 
@@ -26,48 +26,40 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
 
         return member
 
-    async def update_next_user(self):
-        if self.empty:
-            return
-
-        if self.server is None:
-            self.server = await self.bot.fetch_guild(self.discordid)
-
-        if len(self.queue) == 0:
-            async for user in self.bot.db.players.find({"servers": self.discordid}):
-                self.queue.append(user)
-
+    async def get_name(self, user, member):
         try:
-            user = self.queue[0]
-        except IndexError:
-            self.empty = True
-            return
+            return self.serverdata["nameFormat"].format(ign=user['displayname'],
+                                                        level=str(round(user['level'], 2)),
+                                                        guildRank=user.get('guildRank', ""),
+                                                        rank=str(user.get("hypixelRank", "")),
+                                                        username=member.name,
+                                                        guildTag=user.get('guildTag', ""))
+        except KeyError:
+            return member.nick
 
-        self.queue.pop(0)
-
-        member = await self.get_member(user['discordid'])
-        if member is None:
-            await self.bot.db.players.update_one({'_id': user['_id']}, {"$pull": {"servers": self.server.id}})
-            return
-
-        self.serverdata = await self.bot.db.servers.find_one({"discordid": self.discordid})
-
+    async def get_roles(self, user, member):
         guild_applicable_roles = []
         new_roles = []
 
-        hyproles = self.serverdata.get('hypixelRoles')
+        roles = self.serverdata.get('roles')
+
+        if roles is None:
+            return member.roles
+
+        hyproles = roles.get('hypixelRoles').update(roles.get('extraRoles'))
 
         if hyproles:
             for role, id in hyproles.items():
-                guild_applicable_roles.append(id)
+                if id != 0:
+                    guild_applicable_roles.append(id)
 
             try:
                 new_roles.append(self.server.get_role(hyproles[user['hypixelRank']]))
             except KeyError:
                 pass
 
-        guild_applicable_roles.append(self.serverdata.get('unverifiedRole'))
-        guild_applicable_roles.append(self.serverdata.get('verifiedRole'))
+        guild_applicable_roles.append(roles.get('unverifiedRole'))
+        guild_applicable_roles.append(roles.get('verifiedRole'))
 
         try:
             new_roles.append(self.server.get_role(self.serverdata['verifiedRole']))
@@ -87,18 +79,44 @@ class LinkedServer(object):  # Object that references a linked Discord server. B
             if role.id not in guild_applicable_roles:
                 new_roles.append(role)
 
-        try:
-            nick = self.serverdata["nameFormat"].format(ign=user['displayname'],
-                                                        level=str(round(user['level'], 2)),
-                                                        guildRank=user.get('guildRank', ""),
-                                                        rank=str(user.get("hypixelRank", "")),
-                                                        username=member.name)
-            await member.edit(roles=[x for x in new_roles if x is not None], nick=nick)
-        except KeyError:
-            pass
+        return new_roles
+
+    async def get_next_user(self):
+        if self.server is None:
+            self.server = await self.bot.fetch_guild(self.discordid)
+
+        if len(self.queue) == 0:
+            async for user in self.bot.db.players.find({"servers": self.discordid, "urgentUpdate": True}):
+                self.queue.append(user)
 
         try:
-            await member.edit(roles=[x for x in new_roles if x is not None])
+            user = self.queue[0]
+        except IndexError:
+            self.empty = True
+            return
+
+        self.queue.pop(0)
+        return user
+
+    async def update_next_user(self):
+        if self.empty:
+            return
+
+        user = await self.get_next_user()
+        if user is None:
+            return
+
+        member = await self.get_member(user['discordid'])
+        if member is None:
+            return
+
+        roles = await self.get_roles(user, member)
+        nick = await self.get_name(user, member)
+
+        try:
+            await member.edit(roles=[x for x in roles if x is not None], nick=nick)
+        except discord.errors.Forbidden:
+            pass
         except Exception as e:
             raise e
 
@@ -115,6 +133,28 @@ class server(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):  # if server and new user are verified, add server id to their db entry
+        pass
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):  # if server and user are verified, remove server id from their db entry
+        pass
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before,
+                               after):  # check audit log- if it was by bot, ignore, if it wasn't nickname/roles, ignore, otherwise revert
+        pass
+
+    @commands.Cog.listener()
+    async def on_user_update(self, before,
+                             after):  # when a username/discrim updates, make sure to update user's discord name in db
+        pass
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):  # if the guild was verified delete it from db
+        pass
+
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
@@ -129,6 +169,9 @@ class server(commands.Cog):
         - `h+setup roles` - sets up players' rank roles
         - `...`
         """
+
+        # Make sure to create empty roles list, empty nameFormat
+
         await ctx.send("Placeholder")
 
     @setup.command(brief="Name config", usage="./data/name_config_help.png")
@@ -144,6 +187,7 @@ class server(commands.Cog):
         - `{level}` - is replaced with the user's Hypixel level, rounded
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
         - `{guildRank}` - is replaced with the user's guild rank
+        - `{guildTag}` - is replaced with the user's guild rank tag
         - `{discord}` - is replaced with the user's discord username
 
         *Note- bots cannot change the nicknames of server owners, so if you own the server your name won't be synced*
@@ -153,15 +197,16 @@ class server(commands.Cog):
         Will result in players being formatted like this-
         """
 
-        result = await self.bot.db.servers.update_one({"discordid": ctx.guild.id}, {"$set": {"nameFormat": format}})
+        result = await self.bot.db.guilds.update_one({"discordid": ctx.guild.id}, {"$set": {"nameFormat": format}})
 
         if result.matched_count == 0:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
-        count = self.bot.db.players.count_documents({"servers": ctx.guild.id})
+        self.bot.servers[ctx.guild.id].serverdata['nameFormat'] = format
+        result = await self.bot.db.players.update_many({"servers": ctx.guild.id}, {"$set": {"urgentUpdate": True}})
 
         await ctx.send(
-            f"**Updated the format!**\nThe bot will take ~{count} seconds to fully update all the names in this server.")
+            f"**Updated the format!**\nThe bot will take ~{result.matched_count} seconds to fully update all the names in this server.")
 
     @names.error
     async def names_error(self, ctx, error):
@@ -169,7 +214,7 @@ class server(commands.Cog):
 
         if serv is not None:
             newerror = getattr(error, 'original', error)
-            curformat = serv.get('nameFormat', "none")
+            curformat = serv.serverdata.get('nameFormat', "none")
 
             if isinstance(newerror, commands.MissingRequiredArgument):
                 msg = f"Your current naming format is set as `{curformat}`.\n*To change it, please include the format with your command-*"
@@ -212,7 +257,7 @@ class server(commands.Cog):
     async def roles(self, ctx, extras: typing.Optional[str]):
         """
         This command sets up what roles Hypixel+ will apply to users in your server.
-        Usage: `h+setup roles [include extra roles? put anything here for yes, ignore for no]`
+        Usage: `h+setup roles [include extra roles? add anything here for yes, ignore for no]`
 
         It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and Verified/Unverified roles.
 
@@ -230,36 +275,37 @@ class server(commands.Cog):
 
         hypranks = 0
 
+        roles = serv.serverdata['roles']
+
         rolelist = {}
-        for rank in serv['hypixelRoles']:
+        for rank in roles['hypixelRoles']:
             hypranks += 1
-            rolelist[rank] = await self.get_optional_role(serv['hypixelRoles'][rank], ctx.guild)
+            rolelist[rank] = await self.get_optional_role(roles['hypixelRoles'][rank], ctx.guild)
 
         if extras:
-            for rank in serv['extraRoles']:
+            for rank in roles['extraRoles']:
                 hypranks += 1
-                rolelist[rank] = await self.get_optional_role(serv['extraRoles'][rank], ctx.guild)
+                rolelist[rank] = await self.get_optional_role(roles['extraRoles'][rank], ctx.guild)
 
-        rolelist["Verified"] = await self.get_optional_role(serv['verifiedRole'], ctx.guild)
-        rolelist["Unverified"] = await self.get_optional_role(serv['unverifiedRole'], ctx.guild)
+        rolelist["Verified"] = await self.get_optional_role(roles['verifiedRole'], ctx.guild)
+        rolelist["Unverified"] = await self.get_optional_role(roles['unverifiedRole'], ctx.guild)
 
         update_roles = {}
 
-        id = serv.get("guildid")
+        id = serv.serverdata.get("guildid")
         if id is not None:
-            guild_data = await self.bot.db.guilds.find_one({"guildid": id})
-            new_ranks = guild_data['ranks']
+            new_ranks = serv.serverdata['guildRanks']
             update_roles = {}
 
             for rank in new_ranks:
                 try:
-                    discid = serv['guildRoles'].get(rank['name'], 0)
+                    discid = roles['guildRoles'].get(rank['name'], 0)
                 except KeyError:
                     discid = 0
                 update_roles[rank['name']] = discid
                 rolelist[rank['name']] = await self.get_optional_role(discid, ctx.guild)
 
-            await self.bot.db.guilds.update_one({"guildid": id}, {"$set": {"guildRoles": update_roles}})
+            await self.bot.db.guilds.update_one({"guildid": id}, {"$set": {"roles": {"guildRoles": update_roles}}})
 
         rolekeys = list(rolelist.keys())
         rolevals = list(rolelist.values())
@@ -357,13 +403,13 @@ class server(commands.Cog):
         update['unverifiedRole'] = rolelist['Unverified'].id
 
         hyproles = {}
-        for rank in serv['hypixelRoles']:
+        for rank in roles['hypixelRoles']:
             hyproles[rank] = rolelist[rank].id
         update['hypixelRoles'] = hyproles
 
         if extras:
             extraroles = {}
-            for rank in serv['extraRoles']:
+            for rank in roles['extraRoles']:
                 extraroles[rank] = rolelist[rank].id
             update['extraRoles'] = extraroles
 
@@ -373,7 +419,7 @@ class server(commands.Cog):
 
             update['guildRoles'] = update_roles
 
-        await self.bot.db.servers.update_one({"_id": serv["_id"]}, {"$set": update})
+        await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update}})
 
 
 def setup(bot):

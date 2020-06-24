@@ -182,7 +182,10 @@ class Updater:
             new = False
 
             for key, data in update.items():
-                if oldest[key] != data:
+                try:
+                    if oldest[key] != data:
+                        raise KeyError
+                except KeyError:
                     new = True
                     break
 
