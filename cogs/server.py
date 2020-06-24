@@ -33,7 +33,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
                                                         guildRank=user.get('guildRank', ""),
                                                         rank=str(user.get("hypixelRank", "")),
                                                         username=member.name,
-                                                        guildTag=user.get('guildTag', ""))
+                                                        guildTag=user.get('guildRankTag', ""))
         except KeyError:
             return member.nick
 
