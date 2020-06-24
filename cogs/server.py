@@ -115,6 +115,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
 
         try:
             await member.edit(roles=[x for x in roles if x is not None], nick=nick)
+            await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
         except discord.errors.Forbidden:
             pass
         except Exception as e:
