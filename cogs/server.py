@@ -1,5 +1,4 @@
 import asyncio
-import typing
 
 import discord
 from discord.ext import commands
@@ -114,8 +113,8 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         nick = await self.get_name(user, member)
 
         try:
-            await member.edit(roles=[x for x in roles if x is not None], nick=nick)
-            await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
+            await member.edit(roles=[x for x in roles if x is not None], nick=nick[:32])
+            # await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
         except discord.errors.Forbidden:
             pass
         except Exception as e:
@@ -189,7 +188,7 @@ class server(commands.Cog):
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
         - `{guildRank}` - is replaced with the user's guild rank
         - `{guildTag}` - is replaced with the user's guild rank tag
-        - `{discord}` - is replaced with the user's discord username
+        - `{username}` - is replaced with the user's discord username
 
         *Note- bots cannot change the nicknames of server owners, so if you own the server your name won't be synced*
 
@@ -255,10 +254,10 @@ class server(commands.Cog):
     @setup.command(brief="Role config", usage="./data/role_config_help.png")
     @commands.guild_only()
     @checks.serverowner_or_permissions(manage_server=True)
-    async def roles(self, ctx, extras: typing.Optional[str]):
+    async def roles(self, ctx):
         """
         This command sets up what roles Hypixel+ will apply to users in your server.
-        Usage: `h+setup roles [include extra roles? add anything here for yes, ignore for no]`
+        Usage: `h+setup roles`
 
         It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and Verified/Unverified roles.
 
@@ -274,19 +273,11 @@ class server(commands.Cog):
         if serv is None:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
-        hypranks = 0
-
         roles = serv.serverdata['roles']
 
         rolelist = {}
         for rank in roles['hypixelRoles']:
-            hypranks += 1
             rolelist[rank] = await self.get_optional_role(roles['hypixelRoles'][rank], ctx.guild)
-
-        if extras:
-            for rank in roles['extraRoles']:
-                hypranks += 1
-                rolelist[rank] = await self.get_optional_role(roles['extraRoles'][rank], ctx.guild)
 
         rolelist["Verified"] = await self.get_optional_role(roles['verifiedRole'], ctx.guild)
         rolelist["Unverified"] = await self.get_optional_role(roles['unverifiedRole'], ctx.guild)
@@ -296,17 +287,16 @@ class server(commands.Cog):
         id = serv.serverdata.get("guildid")
         if id is not None:
             new_ranks = serv.serverdata['guildRanks']
-            update_roles = {}
+
+            update_roles['guildRoles'] = {}
 
             for rank in new_ranks:
                 try:
                     discid = roles['guildRoles'].get(rank['name'], 0)
                 except KeyError:
                     discid = 0
-                update_roles[rank['name']] = discid
+                update_roles['guildRoles'][rank['name']] = discid
                 rolelist[rank['name']] = await self.get_optional_role(discid, ctx.guild)
-
-            await self.bot.db.guilds.update_one({"guildid": id}, {"$set": {"roles": {"guildRoles": update_roles}}})
 
         rolekeys = list(rolelist.keys())
         rolevals = list(rolelist.values())
@@ -326,7 +316,7 @@ class server(commands.Cog):
                                            hypranks) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
             embed = discord.Embed(colour=self.bot.theme, description=desc)
             embed.set_author(name="Role config",
-                             icon_url="https://upload-icon.s3.us-east-2.amazonaws.com/uploads/icons/png/2674342741552644384-512.png")
+                             icon_url="https://i.imgur.com/7PlbbFL.png")
 
             await message.edit(content="", embed=embed)
 
@@ -399,28 +389,19 @@ class server(commands.Cog):
 
                 index %= len(rolelist)
 
-        update = {}
-        update['verifiedRole'] = rolelist['Verified'].id
-        update['unverifiedRole'] = rolelist['Unverified'].id
+        update_roles['verifiedRole'] = rolelist['Verified'].id
+        update_roles['unverifiedRole'] = rolelist['Unverified'].id
 
         hyproles = {}
         for rank in roles['hypixelRoles']:
             hyproles[rank] = rolelist[rank].id
-        update['hypixelRoles'] = hyproles
-
-        if extras:
-            extraroles = {}
-            for rank in roles['extraRoles']:
-                extraroles[rank] = rolelist[rank].id
-            update['extraRoles'] = extraroles
+        update_roles['hypixelRoles'] = hyproles
 
         if id is not None:
-            for rank in update_roles:
-                update_roles[rank] = rolelist[rank].id
+            for rank in update_roles['guildRoles']:
+                update_roles['guildRoles'][rank] = rolelist[rank].id
 
-            update['guildRoles'] = update_roles
-
-        await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update}})
+        await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
 
 
 def setup(bot):
