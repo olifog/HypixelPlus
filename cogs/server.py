@@ -398,6 +398,7 @@ class server(commands.Cog):
                 update_roles['guildRoles'][rank] = rolelist[rank].id
 
         await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
+        self.bot.servers[ctx.guild.id].serverdata['roles'] = update_roles
         result = await self.bot.db.players.update_many({"servers": ctx.guild.id}, {"$set": {"urgentUpdate": True}})
 
         await ctx.send(
