@@ -45,32 +45,31 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         if roles is None:
             return member.roles
 
-        hyproles = roles.get('hypixelRoles').update(roles.get('extraRoles'))
+        hyproles = roles.get('hypixelRoles')
 
-        if hyproles:
-            for role, id in hyproles.items():
-                if id != 0:
-                    guild_applicable_roles.append(id)
+        for role, id in hyproles.items():
+            if id != 0:
+                guild_applicable_roles.append(id)
 
-            try:
-                new_roles.append(self.server.get_role(hyproles[user['hypixelRank']]))
-            except KeyError:
-                pass
+        try:
+            new_roles.append(self.server.get_role(hyproles[user['hypixelRank']]))
+        except KeyError:
+            pass
 
         guild_applicable_roles.append(roles.get('unverifiedRole'))
         guild_applicable_roles.append(roles.get('verifiedRole'))
 
         try:
-            new_roles.append(self.server.get_role(self.serverdata['verifiedRole']))
+            new_roles.append(self.server.get_role(roles.get('verifiedRole')))
         except KeyError:
             pass
 
         try:
-            for role, id in self.serverdata['guildRoles'].items():
+            for role, id in roles['guildRoles'].items():
                 guild_applicable_roles.append(id)
 
             if user['guildid'] == self.serverdata['guildid']:
-                new_roles.append(self.server.get_role(self.serverdata['guildRoles'][user['guildRank']]))
+                new_roles.append(self.server.get_role(roles['guildRoles'][user['guildRank']]))
         except KeyError:
             pass
 
@@ -114,7 +113,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
 
         try:
             await member.edit(roles=[x for x in roles if x is not None], nick=nick[:32])
-            # await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
+            await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
         except discord.errors.Forbidden:
             pass
         except Exception as e:
@@ -313,7 +312,7 @@ class server(commands.Cog):
         while True:
             desc = await self.render_roles(rolelist,
                                            index,
-                                           hypranks) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
+                                           9) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
             embed = discord.Embed(colour=self.bot.theme, description=desc)
             embed.set_author(name="Role config",
                              icon_url="https://i.imgur.com/7PlbbFL.png")
@@ -402,6 +401,10 @@ class server(commands.Cog):
                 update_roles['guildRoles'][rank] = rolelist[rank].id
 
         await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
+        result = await self.bot.db.players.update_many({"servers": ctx.guild.id}, {"$set": {"urgentUpdate": True}})
+
+        await ctx.send(
+            f"**Updated role settings!**\nThe bot will take ~{result.matched_count} seconds to fully update all the users in this server")
 
 
 def setup(bot):
