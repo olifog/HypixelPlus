@@ -56,7 +56,6 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         except KeyError:
             pass
 
-        guild_applicable_roles.append(roles.get('unverifiedRole'))
         guild_applicable_roles.append(roles.get('verifiedRole'))
 
         try:
@@ -232,8 +231,8 @@ class server(commands.Cog):
             if x == 0:
                 ret += "**Hypixel ranks:**\n"
             elif x == hypranks:
-                ret += "\n**General roles:**\n"
-            elif x == hypranks + 2:
+                ret += "\n**Verified role:**\n"
+            elif x == hypranks + 1:
                 ret += "\n**Guild ranks:**\n"
 
             if x == index:
@@ -258,7 +257,7 @@ class server(commands.Cog):
         This command sets up what roles Hypixel+ will apply to users in your server.
         Usage: `h+setup roles`
 
-        It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and Verified/Unverified roles.
+        It will give you a menu with all the possible roles that Hypixel+ can apply, including Hypixel ranks, guild ranks, and a Verified role.
 
         **Menu navigation:**
         - *change the selected role with the* <:up:711993208220942428> *and* <:down:711993054613078036> *arrows*
@@ -279,7 +278,6 @@ class server(commands.Cog):
             rolelist[rank] = await self.get_optional_role(roles['hypixelRoles'][rank], ctx.guild)
 
         rolelist["Verified"] = await self.get_optional_role(roles['verifiedRole'], ctx.guild)
-        rolelist["Unverified"] = await self.get_optional_role(roles['unverifiedRole'], ctx.guild)
 
         update_roles = {}
 
