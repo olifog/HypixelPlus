@@ -83,7 +83,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
             self.server = await self.bot.fetch_guild(self.discordid)
 
         if len(self.queue) == 0:
-            async for user in self.bot.db.players.find({"servers": self.discordid, "urgentUpdate": True}):
+            async for user in self.bot.db.players.find({"urgentUpdate": self.discordid}):
                 self.queue.append(user)
 
         try:
@@ -112,11 +112,13 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
 
         try:
             await member.edit(roles=[x for x in roles if x is not None], nick=nick[:32])
-            await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": False}})
         except discord.errors.Forbidden:
             pass
         except Exception as e:
             raise e
+
+        user['urgentUpdate'].remove(self.discordid)
+        await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": user['urgentUpdate']}})
 
 
 class DummyRole:

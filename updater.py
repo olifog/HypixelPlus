@@ -189,7 +189,7 @@ class Updater:
                     new = True
                     break
 
-            update['urgentUpdate'] = True
+            update['urgentUpdate'] = oldest['servers']
 
             if not new:
                 update = {}
