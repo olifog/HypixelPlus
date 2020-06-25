@@ -387,7 +387,6 @@ class server(commands.Cog):
                 index %= len(rolelist)
 
         update_roles['verifiedRole'] = rolelist['Verified'].id
-        update_roles['unverifiedRole'] = rolelist['Unverified'].id
 
         hyproles = {}
         for rank in roles['hypixelRoles']:
