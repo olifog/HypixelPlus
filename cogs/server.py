@@ -1,7 +1,6 @@
-import asyncio
-
 import discord
 from discord.ext import commands
+from discord.ext import menus
 
 from extras import checks
 
@@ -127,6 +126,115 @@ class DummyRole:
         self.id = 0
 
 
+class Roles(menus.Menu):
+    def __init__(self, roles):
+        super().__init__(timeout=30.0)
+        self.roles = roles
+        self.index = 0
+
+    async def send_initial_message(self, ctx, channel):
+        self.message = await channel.send("*Loading...*")
+        await self.render()
+        return self.message
+
+    def reaction_check(self, payload):
+        if payload.event_type == "REACTION_REMOVE":
+            return False
+        if payload.message_id != self.message.id:
+            return False
+        if payload.user_id not in (self.bot.owner_id, self._author_id):
+            return False
+
+        return payload.emoji in self.buttons
+
+    async def render(self):
+        desc = ""
+
+        x = 0
+        for role in self.roles:
+            desc += "\n"
+
+            if x == 0:
+                desc += "**Hypixel ranks:**\n"
+            elif x == 9:
+                desc += "\n**Verified role:**\n"
+            elif x == 10:
+                desc += "\n**Guild ranks:**\n"
+
+            if x == self.index:
+                desc += "<:next:711993456356098049>"
+            else:
+                desc += ":heavy_minus_sign:"
+
+            desc += role[0] + "- " + role[1].mention
+            x += 1
+
+        embed = discord.Embed(colour=discord.Colour(15120192), description=desc)
+        embed.set_author(name="Role config", icon_url="https://i.imgur.com/7PlbbFL.png")
+
+        return await self.message.edit(content="", embed=embed)
+
+    @menus.button('<:up:711993208220942428>')
+    async def do_up(self, payload):
+        self.index = (self.index - 1) % len(self.roles)
+        await self.render()
+        await self.message.remove_reaction(payload.emoji, self.ctx.author)
+
+    @menus.button('<:down:711993054613078036>')
+    async def do_down(self, payload):
+        self.index = (self.index + 1) % len(self.roles)
+        await self.render()
+        await self.message.remove_reaction(payload.emoji, self.ctx.author)
+
+    @menus.button('<:add:711993256585461791>')
+    async def do_add(self, payload):
+        current_role = self.roles[self.index]
+
+        if current_role[1].mention == "*Not set*":
+            colour = self.bot.rolecolours.get(current_role[0], discord.Colour.default())
+            newrole = await self.ctx.guild.create_role(name=current_role[0], colour=colour)
+            current_role[1] = newrole
+        else:
+            await self.ctx.send("There's already a role synced for that selection!", delete_after=5)
+
+        await self.render()
+        await self.message.remove_reaction(payload.emoji, self.ctx.author)
+
+    @menus.button('<:remove:711993000976449557>')
+    async def do_remove(self, payload):
+        current_role = self.roles[self.index]
+
+        if current_role[1].mention == "*Not set*":
+            await self.ctx.send("There's no role synced there to remove!", delete_after=5)
+        else:
+            await current_role[1].delete()
+            current_role[1] = DummyRole()
+
+        await self.render()
+        await self.message.remove_reaction(payload.emoji, self.ctx.author)
+
+    @menus.button('<:yes:712303922764578886>')
+    async def do_done(self, payload):
+        self.stop()
+
+    async def message_input(self, message):
+        await message.delete()
+
+        if self.roles[self.index][1].mention == "*Not set*":
+            try:
+                self.roles[self.index][1] = message.role_mentions[0]
+                await self.render()
+            except KeyError:
+                pass
+        else:
+            await self.ctx.send("There's already a role synced for that selection!", delete_after=5)
+
+    async def prompt(self, ctx):
+        await self.start(ctx, wait=True)
+        await self.message.edit(content="*Session ended*")
+        return self.roles
+
+
 class server(commands.Cog):
     """Server commands"""
 
@@ -137,17 +245,16 @@ class server(commands.Cog):
     async def on_member_join(self, member):  # if server and new user are verified, add server id to their db entry
         if member.server.id in self.bot.servers:
             await self.bot.db.players.update_one({'discordid': member.id}, {
-                '$push': {"urgentUpdate": member.server.id, "servers": member.server.id}})
+                '$push': {"urgentUpdate": member.guild.id, "servers": member.guild.id}})
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):  # if server and user are verified, remove server id from their db entry
         if member.server.id in self.bot.servers:
             await self.bot.db.players.update_one({'discordid': member.id}, {
-                '$pull': {"urgentUpdate": member.server.id, "servers": member.server.id}})
+                '$pull': {"urgentUpdate": member.guild.id, "servers": member.guild.id}})
 
     @commands.Cog.listener()
-    async def on_member_update(self, before,
-                               after):  # check audit log- if it was by bot, ignore, if it wasn't nickname/roles, ignore, otherwise revert
+    async def on_member_update(self, before, after):
         if before.roles != after.roles or before.nick != after.nick:
             await self.bot.db.players.update_one({'discordid': after.id}, {"$push": {"urgentUpdate": after.guild.id}})
 
@@ -174,9 +281,6 @@ class server(commands.Cog):
         - `h+setup roles` - sets up players' rank roles
         - `...`
         """
-
-        # Make sure to create empty roles list, empty nameFormat
-
         await ctx.send("Placeholder")
 
     @setup.command(brief="Name config", usage="./data/name_config_help.png")
@@ -229,30 +333,6 @@ class server(commands.Cog):
 
         await self.bot.handle_error(ctx, error)
 
-    async def render_roles(self, roles, index, hypranks):
-        ret = ""
-
-        x = 0
-        for name, role in roles.items():
-            ret += "\n"
-
-            if x == 0:
-                ret += "**Hypixel ranks:**\n"
-            elif x == hypranks:
-                ret += "\n**Verified role:**\n"
-            elif x == hypranks + 1:
-                ret += "\n**Guild ranks:**\n"
-
-            if x == index:
-                ret += "<:next:711993456356098049>"
-            else:
-                ret += ":heavy_minus_sign:"
-
-            ret += name + "- " + role.mention
-            x += 1
-
-        return ret
-
     async def get_optional_role(self, id, guild):
         role = guild.get_role(id)
         return role if role is not None else DummyRole()
@@ -281,11 +361,15 @@ class server(commands.Cog):
 
         roles = serv.serverdata['roles']
 
-        rolelist = {}
-        for rank in roles['hypixelRoles']:
-            rolelist[rank] = await self.get_optional_role(roles['hypixelRoles'][rank], ctx.guild)
+        roleindexes = []
 
-        rolelist["Verified"] = await self.get_optional_role(roles['verifiedRole'], ctx.guild)
+        rolelist = []
+        for rank in roles['hypixelRoles']:
+            rolelist.append([rank, await self.get_optional_role(roles['hypixelRoles'][rank], ctx.guild)])
+            roleindexes.append(rank)
+
+        rolelist.append(["Verified", await self.get_optional_role(roles['verifiedRole'], ctx.guild)])
+        roleindexes.append("Verified")
 
         update_roles = {}
 
@@ -301,109 +385,21 @@ class server(commands.Cog):
                 except KeyError:
                     discid = 0
                 update_roles['guildRoles'][rank['name']] = discid
-                rolelist[rank['name']] = await self.get_optional_role(discid, ctx.guild)
+                rolelist.append([rank['name'], await self.get_optional_role(discid, ctx.guild)])
+                roleindexes.append(rank['name'])
 
-        rolekeys = list(rolelist.keys())
-        rolevals = list(rolelist.values())
+        rolelist = await Roles(rolelist).prompt(ctx)
 
-        message = await ctx.send("*Loading...*")
-        await message.add_reaction(discord.PartialEmoji(name="up", id=711993208220942428))
-        await message.add_reaction(discord.PartialEmoji(name="down", id=711993054613078036))
-        await message.add_reaction(discord.PartialEmoji(name="add", id=711993256585461791))
-        await message.add_reaction(discord.PartialEmoji(name="remove", id=711993000976449557))
-        await message.add_reaction(discord.PartialEmoji(name="yes", id=712303922764578886))
-
-        index = 0
-
-        while True:
-            desc = await self.render_roles(rolelist,
-                                           index,
-                                           9) + "\n\n*Do `h+help setup roles` for help with using this menu!*"
-            embed = discord.Embed(colour=self.bot.theme, description=desc)
-            embed.set_author(name="Role config",
-                             icon_url="https://i.imgur.com/7PlbbFL.png")
-
-            await message.edit(content="", embed=embed)
-
-            def reaction_check(reaction, user):
-                return user == ctx.author
-
-            def message_check(m):
-                return m.author == ctx.author and len(m.role_mentions) == 1
-
-            done, pending = await asyncio.wait([
-                self.bot.wait_for('message', check=message_check),
-                self.bot.wait_for('reaction_add', check=reaction_check)
-            ], timeout=20, return_when=asyncio.FIRST_COMPLETED)
-
-            data = None
-
-            try:
-                data = done.pop().result()
-            except Exception:
-                pass
-
-            for future in pending:
-                future.cancel()
-
-            if data is None:
-                await message.edit(content="*Session ended*")
-                break
-
-            if isinstance(data, discord.Message):
-                await data.delete()
-                if rolevals[index].mention == "*Not set*":
-                    role = data.role_mentions[0]
-                    rolelist[rolekeys[index]] = role
-                    rolekeys = list(rolelist.keys())
-                    rolevals = list(rolelist.values())
-                else:
-                    await ctx.send("There's already a role synced for that selection!", delete_after=5)
-            else:
-                await message.remove_reaction(data[0], data[1])
-                reaction = data[0]
-                try:
-                    reaction = reaction.emoji.name
-                except AttributeError:
-                    reaction = reaction.emoji
-
-                if reaction == "up":
-                    index -= 1
-                elif reaction == "down":
-                    index += 1
-                elif reaction == "add":
-                    if rolevals[index].mention == "*Not set*":
-                        colour = self.bot.rolecolours.get(rolekeys[index], discord.Colour.default())
-                        newrole = await ctx.guild.create_role(name=rolekeys[index], colour=colour)
-                        rolelist[rolekeys[index]] = newrole
-                        rolekeys = list(rolelist.keys())
-                        rolevals = list(rolelist.values())
-                    else:
-                        await ctx.send("There's already a role synced for that selection!", delete_after=5)
-                elif reaction == "remove":
-                    if rolevals[index].mention == "*Not set*":
-                        await ctx.send("There's no role synced there to remove!", delete_after=5)
-                    else:
-                        await rolelist[rolekeys[index]].delete()
-                        rolelist[rolekeys[index]] = DummyRole()
-                        rolekeys = list(rolelist.keys())
-                        rolevals = list(rolelist.values())
-                elif reaction == "yes":
-                    await message.edit(content="*Session ended*")
-                    break
-
-                index %= len(rolelist)
-
-        update_roles['verifiedRole'] = rolelist['Verified'].id
+        update_roles['verifiedRole'] = rolelist[roleindexes.index('Verified')][1].id
 
         hyproles = {}
         for rank in roles['hypixelRoles']:
-            hyproles[rank] = rolelist[rank].id
+            hyproles[rank] = rolelist[roleindexes.index(rank)][1].id
         update_roles['hypixelRoles'] = hyproles
 
         if id is not None:
             for rank in update_roles['guildRoles']:
-                update_roles['guildRoles'][rank] = rolelist[rank].id
+                update_roles['guildRoles'][rank] = rolelist[roleindexes.index(rank)][1].id
 
         await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
         self.bot.servers[ctx.guild.id].serverdata['roles'] = update_roles
