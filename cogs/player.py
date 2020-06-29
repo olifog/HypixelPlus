@@ -44,7 +44,7 @@ class player(commands.Cog):
 
         if daccount == target or daccount == str(ctx.author):
             member = {'discordid': ctx.author.id, 'displayname': ign, 'uuid': player.UUID,
-                      'discordName': str(ctx.author),
+                      'discordName': str(ctx.author), 'urgentUpdate': [],
                       'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1), 'updating': False}
             servers = []
 

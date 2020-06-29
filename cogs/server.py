@@ -13,7 +13,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         self.server = self.bot.get_guild(self.discordid)
         self.serverdata = object
         self.queue = []
-        self.empty = False
+        self.timeout = 0
 
     async def get_member(self, id):
         member = self.server.get_member(id)
@@ -89,14 +89,15 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         try:
             user = self.queue[0]
         except IndexError:
-            self.empty = True
+            self.timeout = 30
             return
 
         self.queue.pop(0)
         return user
 
     async def update_next_user(self):
-        if self.empty:
+        if self.timeout > 0:
+            self.timeout -= 1
             return
 
         user = await self.get_next_user()
@@ -117,8 +118,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         except Exception as e:
             raise e
 
-        user['urgentUpdate'].remove(self.discordid)
-        await self.bot.db.players.update_one({"_id": user['_id']}, {'$set': {"urgentUpdate": user['urgentUpdate']}})
+        await self.bot.db.players.update_one({"_id": user['_id']}, {'$pull': {"urgentUpdate": self.discordid}})
 
 
 class DummyRole:
@@ -135,25 +135,30 @@ class server(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):  # if server and new user are verified, add server id to their db entry
-        pass
+        if member.server.id in self.bot.servers:
+            await self.bot.db.players.update_one({'discordid': member.id}, {
+                '$push': {"urgentUpdate": member.server.id, "servers": member.server.id}})
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):  # if server and user are verified, remove server id from their db entry
-        pass
+        if member.server.id in self.bot.servers:
+            await self.bot.db.players.update_one({'discordid': member.id}, {
+                '$pull': {"urgentUpdate": member.server.id, "servers": member.server.id}})
 
     @commands.Cog.listener()
     async def on_member_update(self, before,
                                after):  # check audit log- if it was by bot, ignore, if it wasn't nickname/roles, ignore, otherwise revert
-        pass
+        if before.roles != after.roles or before.nick != after.nick:
+            await self.bot.db.players.update_one({'discordid': after.id}, {"$push": {"urgentUpdate": after.guild.id}})
 
     @commands.Cog.listener()
-    async def on_user_update(self, before,
-                             after):  # when a username/discrim updates, make sure to update user's discord name in db
-        pass
+    async def on_user_update(self, before, after):
+        if str(before) != str(after):
+            await self.bot.db.players.update_one({'discordid': after.id}, {"discordName": str(after)})
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # if the guild was verified delete it from db
-        pass
+        await self.bot.db.guilds.delete_many({'discordid': guild.id})
 
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -203,7 +208,8 @@ class server(commands.Cog):
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
         self.bot.servers[ctx.guild.id].serverdata['nameFormat'] = format
-        result = await self.bot.db.players.update_many({"servers": ctx.guild.id}, {"$set": {"urgentUpdate": True}})
+        result = await self.bot.db.players.update_many({"servers": ctx.guild.id},
+                                                       {"$push": {"urgentUpdate": ctx.guild.id}})
 
         await ctx.send(
             f"**Updated the format!**\nThe bot will take ~{result.matched_count} seconds to fully update all the names in this server.")
@@ -401,7 +407,8 @@ class server(commands.Cog):
 
         await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
         self.bot.servers[ctx.guild.id].serverdata['roles'] = update_roles
-        result = await self.bot.db.players.update_many({"servers": ctx.guild.id}, {"$set": {"urgentUpdate": True}})
+        result = await self.bot.db.players.update_many({"servers": ctx.guild.id},
+                                                       {"$push": {"urgentUpdate": ctx.guild.id}})
 
         await ctx.send(
             f"**Updated role settings!**\nThe bot will take ~{result.matched_count} seconds to fully update all the users in this server")
