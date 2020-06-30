@@ -261,7 +261,7 @@ class server(commands.Cog):
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
         if str(before) != str(after):
-            await self.bot.db.players.update_one({'discordid': after.id}, {"discordName": str(after)})
+            await self.bot.db.players.update_one({'discordid': after.id}, {"$set": {"discordName": str(after)}})
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # if the guild was verified delete it from db
