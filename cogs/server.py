@@ -484,7 +484,10 @@ class server(commands.Cog):
             if current_guild is None:
                 return await ctx.send("This server hasn't been setup yet! Set it up with `h+setup`!")
 
-            if "guildid" not in current_guild:
+            try:
+                if current_guild['guildid'] is None:
+                    raise KeyError
+            except KeyError:
                 return await ctx.send(
                     "This server doesn't have any guild linked to unlink!\nLink one by using the command like this: `h+setup guild [Guild name]`")
 
