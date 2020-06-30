@@ -469,7 +469,7 @@ class server(commands.Cog):
 
             try:
                 owner = await self.get_guild_owner(hypguild)
-            except KeyError:
+            except Exception:
                 return await ctx.send("Sorry, I couldn't find that guild name on Hypixel.")
 
             if owner['uuid'] == user['uuid']:
