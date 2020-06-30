@@ -43,7 +43,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
                                                             level=str(round(user['level'], 2)),
                                                             rank=str(user.get("hypixelRank", "")),
                                                             username=member.name)
-        except KeyError:
+        except (KeyError, AttributeError):
             return member.nick
 
     async def get_roles(self, user, member):
@@ -339,7 +339,7 @@ class server(commands.Cog):
         - `{ign}` - is replaced with the user's MC username
         - `{level}` - is replaced with the user's Hypixel level, rounded
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
-        - `{guildRank}` - is replaced with the user's guild rank (if th)
+        - `{guildRank}` - is replaced with the user's guild rank
         - `{guildTag}` - is replaced with the user's guild rank tag
         - `{username}` - is replaced with the user's discord username
 
