@@ -99,7 +99,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
         try:
             user = self.queue[0]
         except IndexError:
-            self.timeout = 30
+            self.timeout = 60
             return
 
         self.queue.pop(0)
@@ -110,7 +110,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
             self.timeout -= 1
             return
 
-        self.serverdata = self.bot.db.guilds.find_one({'_id': self.serverdata['_id']})
+        self.serverdata = await self.bot.db.guilds.find_one({'_id': self.serverdata['_id']})
 
         user = await self.get_next_user()
         if user is None:
