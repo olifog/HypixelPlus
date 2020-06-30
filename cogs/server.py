@@ -250,13 +250,13 @@ class server(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):  # if server and new user are verified, add server id to their db entry
-        if member.server.id in self.bot.servers:
+        if member.guild.id in self.bot.servers:
             await self.bot.db.players.update_one({'discordid': member.id}, {
                 '$push': {"urgentUpdate": member.guild.id, "servers": member.guild.id}})
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):  # if server and user are verified, remove server id from their db entry
-        if member.server.id in self.bot.servers:
+        if member.guild.id in self.bot.servers:
             await self.bot.db.players.update_one({'discordid': member.id}, {
                 '$pull': {"urgentUpdate": member.guild.id, "servers": member.guild.id}})
 
