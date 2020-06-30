@@ -283,7 +283,7 @@ class server(commands.Cog):
 
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @checks.serverowner_or_permissions(manage_guild=True)
+    @checks.serverowner_or_permissions(administrator=True)
     async def setup(self, ctx):
         """
         This command will walk you through setting up the Discord server, syncing it with Hypixel.
@@ -329,7 +329,7 @@ class server(commands.Cog):
                        "- `h+setup guild [Guild name]` - links a Hypixel guild to the Discord server")
 
     @setup.command(brief="Name config", usage="./data/name_config_help.png")
-    @checks.serverowner_or_permissions(manage_guild=True)
+    @checks.serverowner_or_permissions(administrator=True)
     async def names(self, ctx, *, format):
         """
         This specifies how Hypixel+ will format members' names.
@@ -382,7 +382,7 @@ class server(commands.Cog):
         return role if role is not None else DummyRole()
 
     @setup.command(brief="Role config", usage="./data/role_config_help.png")
-    @checks.serverowner_or_permissions(manage_guild=True)
+    @checks.serverowner_or_permissions(administrator=True)
     async def roles(self, ctx):
         """
         This command sets up what roles Hypixel+ will apply to users in your server.
@@ -458,7 +458,7 @@ class server(commands.Cog):
                 return member
 
     @setup.command(brief="Link your Hypixel Guild")
-    @checks.serverowner_or_permissions(manage_guild=True)
+    @checks.serverowner_or_permissions(administrator=True)
     async def guild(self, ctx, guildname: typing.Optional[str]):
         """
         This command links your Hypixel guild to the Discord server this command is sent in- you have to own the guild + be an admin in the server to link/unlink it!
