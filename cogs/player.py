@@ -49,11 +49,8 @@ class player(commands.Cog):
             servers = []
 
             for server in self.bot.servers.values():
-                try:
-                    await server.server.fetch_member(ctx.author.id)
+                if server.server.get_member(ctx.author.id) is not None:
                     servers.append(server.discordid)
-                except HTTPError:
-                    pass
 
             member['servers'] = servers
 
