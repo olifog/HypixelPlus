@@ -513,6 +513,10 @@ class server(commands.Cog):
             if owner['uuid'] == user['uuid']:
                 await self.bot.db.guilds.update_one({'discordid': ctx.guild.id},
                                                     {"$set": {"guildid": hypguild.JSON['_id']}})
+
+                for member in ctx.guild.members:
+                    await self.bot.db.players.update_one({'discordid': member.id}, {'$push': {'servers': ctx.guild.id,
+                                                                                              'urgentUpdate': ctx.guild.id}})
                 await ctx.send("Guild linked!")
             else:
                 await ctx.send("You aren't the Guild Master of that guild, so you can't link it. Sorry!")
