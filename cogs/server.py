@@ -304,7 +304,7 @@ class server(commands.Cog):
 
         insert = {'guildid': None,
                   'updating': False,
-                  'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1),
+                  'lastModifiedData': datetime(2000, 1, 1, 1, 1, 1, 1),
                   'discordid': ctx.guild.id,
                   'nameFormat': None,
                   'roles': {'verifiedRole': 0,
