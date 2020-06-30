@@ -29,7 +29,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
 
     async def get_name(self, user, member):
         try:
-            if user['guildid'] == self.serverdata['guildid']:
+            if user.get('guildid') == self.serverdata['guildid'] and user.get('guildid') is not None:
                 return self.serverdata["nameFormat"].format(guildRank=user.get('guildRank', ""),
                                                             guildTag=user.get('guildRankTag', ""),
                                                             ign=user['displayname'],
