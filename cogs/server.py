@@ -279,6 +279,7 @@ class server(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # if the guild was verified delete it from db
         await self.bot.db.guilds.delete_many({'discordid': guild.id})
+        del self.bot.servers[guild.id]
 
     @commands.group(invoke_without_command=True, brief="Server setup")
     @commands.cooldown(1, 10, commands.BucketType.user)
