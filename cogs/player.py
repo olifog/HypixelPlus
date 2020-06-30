@@ -11,18 +11,18 @@ class player(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(brief="Verifying your account")
+    @commands.command(brief="Linking your account")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def verify(self, ctx, ign):
+    async def link(self, ctx, ign):
         """
-        This command verifies your Minecraft account within Discord, enabling the bot to sync your name/rank across servers.
-        Usage: `h+verify [mc username]`
+        This command links your Minecraft account to your Discord account, enabling the bot to sync your name/rank across servers.
+        Usage: `h+link [mc username]`
         """
         pdata = await self.bot.db.players.find_one({'discordid': ctx.author.id})
 
         if pdata is not None:
-            await ctx.send("You're already verified as `" + pdata['displayname'] +
-                           "`! Use `h+unverify` to unverify.")
+            await ctx.send("You already have the account `" + pdata['displayname'] +
+                           "` linked! Use `h+unlink` to unlink it.")
             return
 
         # Check for illegal characters
@@ -60,8 +60,8 @@ class player(commands.Cog):
             return await ctx.send(f"**{ctx.author.mention} Verified as {ign}! The bot will now take a few minutes to" +
                                   " sync your roles/ign across Discord.**")
 
-        vmessage = "> Please follow the steps below to verify your current Discord account!"
-        vmessage += "\n\n**How to verify:**\n\t*- Connect to* `mc.hypixel.net`"
+        vmessage = "> Please follow the steps below to link your current Discord account!"
+        vmessage += "\n\n**How to link:**\n\t*- Connect to* `mc.hypixel.net`"
         vmessage += "\n\t*- Go into your profile (right click on your head)"
         vmessage += "\n\t- Click on \'Social Media\', the Twitter logo"
         vmessage += "\n\t- Click on the Discord logo"
@@ -70,27 +70,27 @@ class player(commands.Cog):
 
         await ctx.send(vmessage)
 
-    @commands.command(brief="Unverify")
+    @commands.command(brief="Unlink")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def unverify(self, ctx):
+    async def unlink(self, ctx):
         """
-        Unverifies your account on the bot. You can always verify again with `h+verify`.
-        Usage: `h+unverify`
+        Unlinks your MC account from your Discord account. You can always link it again with `h+link`.
+        Usage: `h+unlink`
         """
         msg = await ctx.send("*Finding user...*")
         player = await self.bot.db.players.find_one({'discordid': ctx.author.id})
 
         if player is None:
-            await msg.edit(content="**You aren't verified! Verify with `h+verify`.**")
+            await msg.edit(content="**You don't have an account linked! Link your MC account with `h+link`.**")
             return
 
-        await msg.edit(content=f"*Unverifying your linked account, `{player['displayname']}`...*")
+        await msg.edit(content=f"*Unlinking `{player['displayname']}`...*")
 
         if player['updating']:
             await asyncio.sleep(0.8)
 
         await self.bot.db.players.delete_one({'_id': player['_id']})
-        await msg.edit(content=f"**Unverified your account, `{player['displayname']}`!**")
+        await msg.edit(content=f"**Unlinked your account, `{player['displayname']}`!**")
 
 
 def setup(bot):

@@ -53,7 +53,8 @@ class Updater:
 
     async def update_guild(self):
         oldest = None
-        async for g in self.db.guilds.find({"updating": {"$ne": True}}).sort([("lastModifiedData", 1)]).limit(1):
+        async for g in self.db.guilds.find({"updating": {"$ne": True}, "guildid": {"$ne": None}}).sort(
+                [("lastModifiedData", 1)]).limit(1):
             oldest = g
 
         if oldest is None:
@@ -74,91 +75,89 @@ class Updater:
                 update[opt] = ret
 
         gid = oldest.get("guildid")
-        if gid:
-            guild = await self.hypixelapi.getGuild(id=gid)
-            update['guildid'] = gid
-            update['guildName'] = guild.JSON['name']
+        guild = await self.hypixelapi.getGuild(id=gid)
+        update['guildid'] = gid
+        update['guildName'] = guild.JSON['name']
 
-            sorted_ranks = sorted(guild.JSON['ranks'], key=itemgetter('priority'))
-            update['guildRanks'] = [{'name': 'Guild Master', 'tag': 'GM', 'default': False}]
+        sorted_ranks = sorted(guild.JSON['ranks'], key=itemgetter('priority'))
+        update['guildRanks'] = [{'name': 'Guild Master', 'tag': 'GM', 'default': False}]
 
-            tags = {'Guild Master': 'GM'}
+        tags = {'Guild Master': 'GM'}
 
-            for x in range(len(sorted_ranks)):
-                rank = sorted_ranks[x]
-                tags[rank['name']] = rank['tag']
-                update['guildRanks'].insert(len(update['guildRanks']) - 1,
-                                            {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
+        for x in range(len(sorted_ranks)):
+            rank = sorted_ranks[x]
+            tags[rank['name']] = rank['tag']
+            update['guildRanks'].insert(len(update['guildRanks']) - 1,
+                                        {'name': rank['name'], 'tag': rank['tag'], 'default': rank['default']})
 
-            top = {'week': [], 'average': []}
-            days = []
-            for x in range(7):
-                d = (datetime.now(tz=self.est) - timedelta(days=x)).strftime("%Y-%m-%d")
-                days.append(d)
-                top[d] = []
+        top = {'week': [], 'average': []}
+        days = []
+        for x in range(7):
+            d = (datetime.now(tz=self.est) - timedelta(days=x)).strftime("%Y-%m-%d")
+            days.append(d)
+            top[d] = []
 
-            memberlist = []
+        memberlist = []
 
-            update['members'] = []
-            for member in guild.JSON['members']:
-                memberlist.append(member['uuid'])
-                dbplayer = await self.db.players.find_one({'uuid': member['uuid']})
+        update['members'] = []
+        for member in guild.JSON['members']:
+            memberlist.append(member['uuid'])
+            dbplayer = await self.db.players.find_one({'uuid': member['uuid']})
 
-                newExpHistory = member['expHistory']
-                newExpHistory['week'] = sum(newExpHistory.values())
-                newExpHistory['average'] = newExpHistory['week'] / 7
-                p = {'xp': 0}
+            newExpHistory = member['expHistory']
+            newExpHistory['week'] = sum(newExpHistory.values())
+            newExpHistory['average'] = newExpHistory['week'] / 7
+            p = {'xp': 0}
 
-                if dbplayer is not None:
-                    p['player'] = dbplayer['displayname']
-                    p['discord'] = dbplayer['discordid']
-                    pupdate = {'guildid': guild.JSON['_id'], 'guildRank': member['rank'],
-                               'guildRankTag': tags[member['rank']], 'guildExp': newExpHistory}
-                    result = await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
-                    if result.modified_count == 1:
-                        await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': {'urgentUpdate': True}})
-                else:
-                    get_from_api = True
-                    try:
-                        for old_mem in oldest['members']:
-                            if old_mem['uuid'] == member['uuid']:
-                                try:
-                                    p['player'] = old_mem['name']
-                                    get_from_api = False
-                                except KeyError:
-                                    pass
-                                break
-                    except KeyError:
-                        pass
+            if dbplayer is not None:
+                p['player'] = dbplayer['displayname']
+                p['discord'] = dbplayer['discordid']
+                pupdate = {'guildid': guild.JSON['_id'], 'guildRank': member['rank'],
+                           'guildRankTag': tags[member['rank']], 'guildExp': newExpHistory}
+                result = await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
+                if result.modified_count == 1:
+                    await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': {'urgentUpdate': True}})
+            else:
+                get_from_api = True
+                try:
+                    for old_mem in oldest['members']:
+                        if old_mem['uuid'] == member['uuid']:
+                            try:
+                                p['player'] = old_mem['name']
+                                get_from_api = False
+                            except KeyError:
+                                pass
+                            break
+                except KeyError:
+                    pass
 
-                    if get_from_api:
-                        url = 'https://playerdb.co/api/player/minecraft/' + member['uuid']
-                        resp = await self.handler.getJSON(url)
-                        p['player'] = resp['data']['player']['username']
+                if get_from_api:
+                    url = 'https://playerdb.co/api/player/minecraft/' + member['uuid']
+                    resp = await self.handler.getJSON(url)
+                    p['player'] = resp['data']['player']['username']
 
-                for timeframe, xp in newExpHistory.items():
-                    p['xp'] = xp
-                    try:
-                        top[timeframe].append(copy.copy(p))
-                    except KeyError:
-                        pass
+            for timeframe, xp in newExpHistory.items():
+                p['xp'] = xp
+                try:
+                    top[timeframe].append(copy.copy(p))
+                except KeyError:
+                    pass
 
-                update['members'].append({'name': p['player'], 'uuid': member['uuid']})
+            update['members'].append({'name': p['player'], 'uuid': member['uuid']})
 
+        for timeframe in top:
+            top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:10]
 
-            for timeframe in top:
-                top[timeframe] = sorted(top[timeframe], key=itemgetter('xp'), reverse=True)[:10]
+        update['top'] = top
 
-            update['top'] = top
+        async for player in self.db.players.find({'guildid': guild.JSON['_id']}):
+            if player['uuid'] not in memberlist:
+                unset = {'guildid': '', 'guildRank': '', 'guildRankTag': '', 'guildExp': ''}
+                await self.db.players.update_one({'_id': player['_id']}, {'$unset': unset})
 
-            async for player in self.db.players.find({'guildid': guild.JSON['_id']}):
-                if player['uuid'] not in memberlist:
-                    unset = {'guildid': '', 'guildRank': '', 'guildRankTag': '', 'guildExp': ''}
-                    await self.db.players.update_one({'_id': player['_id']}, {'$unset': unset})
+        update["lastModifiedData"] = datetime.utcnow()
 
-            update["lastModifiedData"] = datetime.utcnow()
-
-            await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': update})
+        await self.db.guilds.update_one({'_id': oldest['_id']}, {'$set': update})
 
     async def update_player(self):
         oldest = None

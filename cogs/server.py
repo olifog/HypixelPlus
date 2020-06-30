@@ -1,3 +1,5 @@
+import typing
+
 import discord
 from discord.ext import commands
 from discord.ext import menus
@@ -26,12 +28,17 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
 
     async def get_name(self, user, member):
         try:
-            return self.serverdata["nameFormat"].format(ign=user['displayname'],
-                                                        level=str(round(user['level'], 2)),
-                                                        guildRank=user.get('guildRank', ""),
-                                                        rank=str(user.get("hypixelRank", "")),
-                                                        username=member.name,
-                                                        guildTag=user.get('guildRankTag', ""))
+            if user['guildid'] == self.serverdata['guildid']:
+                name = self.serverdata["nameFormat"].format(guildRank=user.get('guildRank', ""),
+                                                            guildTag=user.get('guildRankTag', ""))
+            else:
+                name = self.serverdata["nameFormat"].format(guildRank="", guildTag="")
+
+            name = name.format(ign=user['displayname'], level=str(round(user['level'], 2)),
+                               rank=str(user.get("hypixelRank", "")), username=member.name)
+
+            return name
+
         except KeyError:
             return member.nick
 
@@ -295,7 +302,7 @@ class server(commands.Cog):
         - `{ign}` - is replaced with the user's MC username
         - `{level}` - is replaced with the user's Hypixel level, rounded
         - `{rank}` - is replaced with the user's Hypixel rank, without surrounding brackets
-        - `{guildRank}` - is replaced with the user's guild rank
+        - `{guildRank}` - is replaced with the user's guild rank (if th)
         - `{guildTag}` - is replaced with the user's guild rank tag
         - `{username}` - is replaced with the user's discord username
 
@@ -408,6 +415,68 @@ class server(commands.Cog):
 
         await ctx.send(
             f"**Updated role settings!**\nThe bot will take ~{result.matched_count} seconds to fully update all the users in this server")
+
+    async def get_guild_owner(self, guild):
+        for member in guild['members']:
+            if member['rank'] == "Guild Master":
+                return member
+
+    @setup.command(brief="Link your Hypixel Guild")
+    @commands.guild_only()
+    @checks.serverowner_or_permissions(manage_server=True)
+    async def guild(self, ctx, guildname: typing.Optional[str]):
+        """
+        This command links your Hypixel guild to the Discord server this command is sent in- you have to own the guild + be an admin in the server to link/unlink it!
+        Usage: `h+setup guild [Guild name]`
+
+        Linking your Hypixel guild enables things like synced guild roles, guild ranks in name format, viewing top GEXP, and many more future features.
+
+        To unlink your Hypixel guild, use this command without any guild name, just `h+setup guild`
+        """
+
+        user = await self.bot.db.players.find_one({'discordid': ctx.author.id})
+
+        if user is None:
+            return await ctx.send("Please link your account first with `h+link`!")
+
+        current_guild = await self.bot.db.guilds.find_one({'discordid': ctx.guild.id})
+
+        if guildname is None:
+            if current_guild is None:
+                return await ctx.send("This server hasn't been setup yet! Set it up with `h+setup`!")
+
+            if "guildid" not in current_guild:
+                return await ctx.send(
+                    "This server doesn't have any guild linked to unlink!\nLink one by using the command like this: `h+setup guild [Guild name]`")
+
+            hypguild = await self.bot.hypixelapi.getGuild(id=current_guild['guildid'])
+            owner = await self.get_guild_owner(hypguild)
+
+            if owner['uuid'] == user['uuid']:
+                await self.bot.db.guilds.update_one({'discordid': ctx.guild.id}, {
+                    "$set": {"guildid": None, "guildName": None, "guildRanks": [], "top": [], "members": []}})
+                await ctx.send("Guild unlinked!")
+            else:
+                return await ctx.send("You aren't the Guild Master of that guild, so you can't unlink it. Sorry!")
+        else:
+            test_guild = await self.bot.db.guilds.find_one({'guildName': guildname})
+
+            if test_guild is not None:
+                return await ctx.send(
+                    "That guild is already linked to a server. Unlink it by using this command without any guild name!")
+
+            hypguild = await self.bot.hypixelapi.getGuild(name=guildname)
+
+            try:
+                owner = await self.get_guild_owner(hypguild)
+            except KeyError:
+                return await ctx.send("Sorry, I couldn't find that guild name on Hypixel.")
+
+            if owner['uuid'] == user['uuid']:
+                await self.bot.db.guilds.update_one({'discordid': ctx.guild.id}, {"$set": {"guildid": hypguild['_id']}})
+                await ctx.send("Guild linked!")
+            else:
+                await ctx.send("You aren't the Guild Master of that guild, so you can't link it. Sorry!")
 
 
 def setup(bot):
