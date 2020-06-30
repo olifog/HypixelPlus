@@ -417,7 +417,7 @@ class server(commands.Cog):
             f"**Updated role settings!**\nThe bot will take ~{result.matched_count} seconds to fully update all the users in this server")
 
     async def get_guild_owner(self, guild):
-        for member in guild['members']:
+        for member in guild.JSON['members']:
             if member['rank'] == "Guild Master":
                 return member
 
@@ -473,7 +473,8 @@ class server(commands.Cog):
                 return await ctx.send("Sorry, I couldn't find that guild name on Hypixel.")
 
             if owner['uuid'] == user['uuid']:
-                await self.bot.db.guilds.update_one({'discordid': ctx.guild.id}, {"$set": {"guildid": hypguild['_id']}})
+                await self.bot.db.guilds.update_one({'discordid': ctx.guild.id},
+                                                    {"$set": {"guildid": hypguild.JSON['_id']}})
                 await ctx.send("Guild linked!")
             else:
                 await ctx.send("You aren't the Guild Master of that guild, so you can't link it. Sorry!")
