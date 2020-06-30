@@ -110,6 +110,8 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
             self.timeout -= 1
             return
 
+        self.serverdata = self.bot.db.guilds.find_one({'_id': self.serverdata['_id']})
+
         user = await self.get_next_user()
         if user is None:
             return
@@ -318,6 +320,7 @@ class server(commands.Cog):
                             }}}
 
         await self.bot.db.guilds.insert_one(insert)
+        self.bot.servers[ctx.guild.id] = LinkedServer(self.bot, insert)
 
         await msg.edit(content="Done!")
         await ctx.send("To set up the bot's linking features, use the rest of the setup subcommands:\n" +
@@ -353,9 +356,9 @@ class server(commands.Cog):
         if result.matched_count == 0:
             return await ctx.send("Please sync and setup your server first by running `h+setup`!")
 
-        self.bot.servers[ctx.guild.id].serverdata['nameFormat'] = format
         result = await self.bot.db.players.update_many({"servers": ctx.guild.id},
                                                        {"$push": {"urgentUpdate": ctx.guild.id}})
+        self.bot.servers[ctx.guild.id].timeout = 0
 
         await ctx.send(
             f"**Updated the format!**\nThe bot will take ~{result.matched_count} seconds to fully update all the names in this server.")
@@ -444,9 +447,9 @@ class server(commands.Cog):
                 update_roles['guildRoles'][rank] = rolelist[roleindexes.index(rank)][1].id
 
         await self.bot.db.guilds.update_one({"_id": serv.serverdata["_id"]}, {"$set": {"roles": update_roles}})
-        self.bot.servers[ctx.guild.id].serverdata['roles'] = update_roles
         result = await self.bot.db.players.update_many({"servers": ctx.guild.id},
                                                        {"$push": {"urgentUpdate": ctx.guild.id}})
+        self.bot.servers[ctx.guild.id].timeout = 0
 
         await ctx.send(
             f"**Updated role settings!**\nThe bot will take ~{result.matched_count} seconds to fully update all the users in this server")
