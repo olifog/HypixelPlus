@@ -116,7 +116,7 @@ class Updater:
                            'guildRankTag': tags[member['rank']], 'guildExp': newExpHistory}
                 result = await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': pupdate})
                 if result.modified_count == 1:
-                    await self.db.players.update_one({'_id': dbplayer['_id']}, {'$set': {'urgentUpdate': True}})
+                    await self.db.players.update_one({'_id': dbplayer['_id']}, {'$push': {'urgentUpdate': gid}})
             else:
                 get_from_api = True
                 try:
