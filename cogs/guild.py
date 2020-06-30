@@ -73,7 +73,7 @@ class guild(commands.Cog):
 
         embed = discord.Embed(timestamp=datetime.now(tz=self.bot.est), description=desc)
         embed.set_author(name=titles.get(timeframe, "Guild top EXP for " + dispday),
-                         icon_url="https://i.imgur.com/GMm53sH.png")
+                         icon_url="https://i.imgur.com/5OA6dzg.png")
         await ctx.send(embed=embed)
 
 

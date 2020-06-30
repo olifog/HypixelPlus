@@ -30,16 +30,19 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
     async def get_name(self, user, member):
         try:
             if user['guildid'] == self.serverdata['guildid']:
-                name = self.serverdata["nameFormat"].format(guildRank=user.get('guildRank', ""),
-                                                            guildTag=user.get('guildRankTag', ""))
+                return self.serverdata["nameFormat"].format(guildRank=user.get('guildRank', ""),
+                                                            guildTag=user.get('guildRankTag', ""),
+                                                            ign=user['displayname'],
+                                                            level=str(round(user['level'], 2)),
+                                                            rank=str(user.get("hypixelRank", "")),
+                                                            username=member.name)
             else:
-                name = self.serverdata["nameFormat"].format(guildRank="", guildTag="")
-
-            name = name.format(ign=user['displayname'], level=str(round(user['level'], 2)),
-                               rank=str(user.get("hypixelRank", "")), username=member.name)
-
-            return name
-
+                return self.serverdata["nameFormat"].format(guildRank="",
+                                                            guildTag="",
+                                                            ign=user['displayname'],
+                                                            level=str(round(user['level'], 2)),
+                                                            rank=str(user.get("hypixelRank", "")),
+                                                            username=member.name)
         except KeyError:
             return member.nick
 
