@@ -1,4 +1,5 @@
 import typing
+from datetime import datetime
 
 import discord
 from discord.ext import commands
@@ -286,9 +287,40 @@ class server(commands.Cog):
         To set up individual parts of the server's config, use one of the following subcommands:
         - `h+setup names [format]` - specifies how the bot will sync usernames
         - `h+setup roles` - sets up players' rank roles
-        - `...`
+        - `h+setup guild [Guild name] - links a Hypixel guild to the Discord server`
         """
-        await ctx.send("Placeholder")
+        current_guild = await self.bot.db.guilds.find_one({'discordid': ctx.guild.id})
+
+        if current_guild is not None:
+            return await ctx.send("This Discord server has already been setup!")
+
+        msg = await ctx.send("*Setting up...*")
+
+        insert = {'guildid': None,
+                  'updating': False,
+                  'lastModifiedData': datetime.datetime(2000, 1, 1, 1, 1, 1, 1),
+                  'discordid': ctx.guild.id,
+                  'nameFormat': None,
+                  'roles': {'verifiedRole': 0,
+                            'hypixelRoles': {
+                                'VIP': 0,
+                                'VIP+': 0,
+                                'MVP': 0,
+                                'MVP+': 0,
+                                'MVP++': 0,
+                                'Hypixel Helper': 0,
+                                'Youtuber': 0,
+                                'Hypixel Moderator': 0,
+                                'Hypixel Admin': 0
+                            }}}
+
+        await self.bot.db.guilds.insert_one(insert)
+
+        await msg.edit(content="Done!")
+        await ctx.send("To set up the bot's linking features, use the rest of the setup subcommands:\n" +
+                       "- `h+setup names [format]` - specifies how the bot will sync usernames\n" +
+                       "- `h+setup roles` - sets up players' rank roles\n" +
+                       "- `h+setup guild [Guild name]` - links a Hypixel guild to the Discord server")
 
     @setup.command(brief="Name config", usage="./data/name_config_help.png")
     @commands.guild_only()
@@ -418,7 +450,7 @@ class server(commands.Cog):
 
     async def get_guild_owner(self, guild):
         for member in guild.JSON['members']:
-            if member['rank'] == "Guild Master":
+            if member['rank'] == "Guild Master" or member['rank'] == "GUILDMASTER":
                 return member
 
     @setup.command(brief="Link your Hypixel Guild")
