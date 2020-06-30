@@ -49,7 +49,7 @@ class player(commands.Cog):
             servers = []
 
             for server in self.bot.servers.values():
-                if await server.server.fetch_member(ctx.author.id) is not None:
+                if await server.server.get_member(ctx.author.id) is not None:
                     servers.append(server.discordid)
 
             member['servers'] = servers
