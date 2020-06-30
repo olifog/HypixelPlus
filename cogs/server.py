@@ -44,7 +44,7 @@ class LinkedServer:  # Object that references a linked Discord server. Basically
                                                             rank=str(user.get("hypixelRank", "")),
                                                             username=member.name)
         except (KeyError, AttributeError):
-            return member.nick
+            return member.nick if member.nick is not None else member.name
 
     async def get_roles(self, user, member):
         guild_applicable_roles = []
