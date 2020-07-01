@@ -44,6 +44,11 @@ class dev(commands.Cog):
         player = await self.bot.hypixelapi.getPlayer(name=name)
         await ctx.send(player.getRank())
 
+    @commands.command()
+    @checks.is_owner()
+    async def leave(self, ctx):
+        await ctx.guild.leave()
+
 
 def setup(bot):
     bot.add_cog(dev(bot))
