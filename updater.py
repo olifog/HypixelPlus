@@ -53,7 +53,8 @@ class Updater:
 
     async def update_guild(self):
         oldest = None
-        async for g in self.db.guilds.find({"updating": {"$ne": True}, "guildid": {"$ne": None}}).sort(
+        async for g in self.db.guilds.find(
+                {"updating": {"$ne": True}, "guildid": {"$ne": None}, "custom": {"$ne": True}}).sort(
                 [("lastModifiedData", 1)]).limit(1):
             oldest = g
 
