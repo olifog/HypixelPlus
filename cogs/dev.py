@@ -47,6 +47,7 @@ class dev(commands.Cog):
     @commands.command()
     @checks.is_owner()
     async def leave(self, ctx):
+        await ctx.send("test")
         await ctx.guild.leave()
 
 
